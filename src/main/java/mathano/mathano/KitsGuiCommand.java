@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,10 +15,66 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.io.IOException;
 
 public class KitsGuiCommand implements CommandExecutor, Listener {
+    // Button to create a kit
+    private static final ItemStack createItem = new ItemStack(Material.NETHER_STAR);
+    private static final ItemMeta metaCreateItem = createItem.getItemMeta();
+
+    // Button to exit the GUI
+    private static final ItemStack exitItem = new ItemStack(Material.PAPER);
+    private static final ItemMeta metaExitItem = exitItem.getItemMeta();
+
+    // Delimitation of the GUI
+    private static final ItemStack glassPaneItem = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
+    private static final ItemMeta metaGlassPaneItem = glassPaneItem.getItemMeta();
+
+    // Button to name the kit
+    private static final ItemStack nameKitItem = new ItemStack(Material.OAK_SIGN);
+    private static final ItemMeta metaKitItem = nameKitItem.getItemMeta();
+
+
+    // Button to save the kit
+    private static final ItemStack saveKitItem = new ItemStack(Material.PAPER);
+    private static final ItemMeta metaSaveItem = saveKitItem.getItemMeta();
+
+    // Button to go back in mainGUI
+    private static final ItemStack goBackItem = new ItemStack(Material.PAPER);
+    private static final ItemMeta metaGoBackItem = goBackItem.getItemMeta();
+
+
     public KitsGuiCommand(OBGiveAll plugin) {
         Bukkit.getPluginManager().registerEvents(this, plugin);
+
+        // Button to create a kit
+        metaCreateItem.setDisplayName(ChatColor.GREEN + "Create a kit");
+        createItem.setItemMeta(metaCreateItem);
+
+        // Button to exit the GUI
+        metaExitItem.setDisplayName(ChatColor.RED + "Exit");
+        metaExitItem.setCustomModelData(10066);
+        exitItem.setItemMeta(metaExitItem);
+
+        // Delimitation of the GUI
+        metaGlassPaneItem.setDisplayName(" ");
+        glassPaneItem.setItemMeta(metaGlassPaneItem);
+
+        // Button to name the kit
+        metaKitItem.setDisplayName("Name of the kit");
+        nameKitItem.setItemMeta(metaKitItem);
+
+        // Button to save the kit
+        metaSaveItem.setDisplayName("Save kit");
+        metaSaveItem.setCustomModelData(10064);
+        saveKitItem.setItemMeta(metaSaveItem);
+
+        // Button to go back in mainGUI
+        metaGoBackItem.setDisplayName("Back");
+        metaGoBackItem.setCustomModelData(10078);
+        goBackItem.setItemMeta(metaGoBackItem);
     }
 
     @Override
@@ -39,33 +96,12 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         // Creation of a gui of size 54 titled MainGUI
         Inventory gui = Bukkit.createInventory(player, 9 * 6, "MainGUI");
 
-        // En faire un public static ou private static final
-        // pour éviter de tout le temps refaire la var et mettre les valeurs dans construct
-
-        // Add items to the GUI
-        // Creation kit item named "createItem"
-        ItemStack createItem = new ItemStack(Material.NETHER_STAR);
-        ItemMeta metaCreateItem = createItem.getItemMeta();
-        metaCreateItem.setDisplayName(ChatColor.GREEN + "Create a kit");
-        createItem.setItemMeta(metaCreateItem);
-        // Exit gui item named "exitItem"
-        ItemStack exitItem = new ItemStack(Material.PAPER);
-        ItemMeta metaExitItem = exitItem.getItemMeta();
-        metaExitItem.setDisplayName(ChatColor.RED + "Exit");
-        metaExitItem.setCustomModelData(10066);
-        exitItem.setItemMeta(metaExitItem);
-        // White stained-glass pane
-        ItemStack glassPaneItem = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-        ItemMeta metaGlassPaneItem = glassPaneItem.getItemMeta();
-        metaGlassPaneItem.setDisplayName(" ");
-        glassPaneItem.setItemMeta(metaGlassPaneItem);
-
         // Set the different items on the gui
         // Set the position of the buttons in the gui
         gui.setItem(45, createItem);
         gui.setItem(53, exitItem);
         // Set the glass pane
-        for(int i = 45 - 9; i < 45; i++) {
+        for (int i = 45 - 9; i < 45; i++) {
             gui.setItem(i, glassPaneItem);
         }
         gui.setItem(46, glassPaneItem);
@@ -74,9 +110,14 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         gui.setItem(51, glassPaneItem);
         gui.setItem(52, glassPaneItem);
 
-        // Metadata given to keep track of the opened inventories
-        player.setMetadata("OpenedMainGUI", new FixedMetadataValue(OBGiveAll.getInstance(), gui));
-        System.out.println("Metadata OpenedMainGUI given to player");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Metadata given to keep track of the opened inventories
+                player.setMetadata("OpenedMainGUI", new FixedMetadataValue(OBGiveAll.getInstance(), gui));
+                System.out.println("Metadata OpenedMainGUI given to player");
+            }
+        }.runTaskLater(OBGiveAll.getInstance(), 1);
 
         player.openInventory(gui);
         System.out.println("MainGUI opened");
@@ -86,36 +127,6 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         // Creation of a gui of size 54 titled MainGUI
         Inventory gui = Bukkit.createInventory(player, 9 * 6, "KitCreationGUI");
 
-        // Add items to the GUI
-        // Exit gui item
-        ItemStack exitItem = new ItemStack(Material.PAPER);
-        ItemMeta metaExitItem = exitItem.getItemMeta();
-        metaExitItem.setDisplayName(ChatColor.RED + "Exit");
-        metaExitItem.setCustomModelData(10066);
-        exitItem.setItemMeta(metaExitItem);
-        // White stained-glass pane
-        ItemStack glassPaneItem = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-        ItemMeta metaGlassPaneItem = glassPaneItem.getItemMeta();
-        metaGlassPaneItem.setDisplayName(" ");
-        glassPaneItem.setItemMeta(metaGlassPaneItem);
-        // Name kit
-        ItemStack nameKitItem = new ItemStack(Material.OAK_SIGN);
-        ItemMeta metaKitItem = nameKitItem.getItemMeta();
-        metaKitItem.setDisplayName("Name of the kit");
-        nameKitItem.setItemMeta(metaKitItem);
-        // Save kit
-        ItemStack saveKitItem = new ItemStack(Material.PAPER);
-        ItemMeta metaSaveItem = saveKitItem.getItemMeta();
-        metaSaveItem.setDisplayName("Save kit");
-        metaSaveItem.setCustomModelData(10064);
-        saveKitItem.setItemMeta(metaSaveItem);
-        // Go back
-        ItemStack goBackItem = new ItemStack(Material.PAPER);
-        ItemMeta metaGoBackItem = goBackItem.getItemMeta();
-        metaGoBackItem.setDisplayName("Back");
-        metaGoBackItem.setCustomModelData(10078);
-        goBackItem.setItemMeta(metaGoBackItem);
-
         // Set the different items on the gui
         // Set the position of the buttons in the gui
         gui.setItem(53, exitItem);
@@ -123,7 +134,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         gui.setItem(50, saveKitItem);
         gui.setItem(45, goBackItem);
         // Set the glass pane
-        for(int i = 45 - 9; i < 45; i++) {
+        for (int i = 45 - 9; i < 45; i++) {
             gui.setItem(i, glassPaneItem);
         }
         gui.setItem(46, glassPaneItem);
@@ -132,9 +143,15 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         gui.setItem(51, glassPaneItem);
         gui.setItem(52, glassPaneItem);
 
-        // Metadata given to keep track of the opened inventories
-        player.setMetadata("OpenedKitCreationGUI", new FixedMetadataValue(OBGiveAll.getInstance(), gui));
-        System.out.println("Metadata OpenedKitCreationGUI given to player");
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Metadata given to keep track of the opened inventories
+                player.setMetadata("OpenedKitCreationGUI", new FixedMetadataValue(OBGiveAll.getInstance(), gui));
+                System.out.println("Metadata OpenedKitCreationGUI given to player");
+            }
+        }.runTaskLater(OBGiveAll.getInstance(), 1);
 
         player.openInventory(gui);
         System.out.println("KitCreationGUI opened");
@@ -142,25 +159,11 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        System.out.println("InventoryClickEvent triggered");
         Player player = (Player) event.getWhoClicked();
 
         if (player.hasMetadata("OpenedMainGUI")) {
             event.setCancelled(true);
             System.out.println("Cancelled event InventoryClickEvent for MainGUI");
-
-            // Button to create a new kit
-            ItemStack createItem = new ItemStack(Material.NETHER_STAR);
-            ItemMeta metaCreateItem = createItem.getItemMeta();
-            metaCreateItem.setDisplayName(ChatColor.GREEN + "Create a kit");
-            createItem.setItemMeta(metaCreateItem);
-
-            // Button to close the gui
-            ItemStack exitItem = new ItemStack(Material.PAPER);
-            ItemMeta metaExitItem = exitItem.getItemMeta();
-            metaExitItem.setDisplayName(ChatColor.RED + "Exit");
-            metaExitItem.setCustomModelData(10066);
-            exitItem.setItemMeta(metaExitItem);
 
             // Get the clicked item and perform action
             if (event.getSlot() == 45 && event.getCurrentItem().isSimilar(createItem)) {
@@ -176,20 +179,6 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         }
 
         if (player.hasMetadata("OpenedKitCreationGUI")) {
-
-            // Button to close the gui
-            ItemStack exitItem = new ItemStack(Material.PAPER);
-            ItemMeta metaExitItem = exitItem.getItemMeta();
-            metaExitItem.setDisplayName(ChatColor.RED + "Exit");
-            metaExitItem.setCustomModelData(10066);
-            exitItem.setItemMeta(metaExitItem);
-            // Go back
-            ItemStack goBackItem = new ItemStack(Material.PAPER);
-            ItemMeta metaGoBackItem = goBackItem.getItemMeta();
-            metaGoBackItem.setDisplayName("Back");
-            metaGoBackItem.setCustomModelData(10078);
-            goBackItem.setItemMeta(metaGoBackItem);
-
             int[] tabCancel = new int[14];
             for (int i = 0; i < 9; i++) {
                 tabCancel[i] = 36 + i;
@@ -202,7 +191,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
             tabCancel[13] = 52;
 
             for (int i = 0; i < 14; i++) {
-                if (event.getSlot() == tabCancel[i]){
+                if (event.getSlot() == tabCancel[i]) {
                     event.setCancelled(true);
                     System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
@@ -218,8 +207,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
                     System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
                     // if the slot contains the correct item, opens the mainGUI
-                    if (event.getCurrentItem().isSimilar(goBackItem))
-                    {
+                    if (event.getCurrentItem().isSimilar(goBackItem)) {
                         System.out.println("Slot 45 of KitCreationGUI clicked");
                         mainGUI(player);
                     }
@@ -235,6 +223,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
                     System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
                     System.out.println("Slot 50 of KitCreationGUI clicked");
+                    saveKit(event.getClickedInventory());
                     break;
                 case 53:
                     // if the bedrock block is clicked, cancel this action and close the gui
@@ -250,12 +239,41 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         }
     }
 
+    public void saveKit(Inventory kit) {
+        int cmp = 0;
+        for (int i = 0; i < 36; i++) {
+            if (kit.getItem(i) != null) {
+                cmp++;
+            }
+        }
+
+        System.out.println("Taille du tab : " + cmp);
+
+        if (cmp > 0) {
+            FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
+            int cmp2 = 0;
+
+            for (int i = 0; i < 36; i++) {
+                if (kit.getItem(i) != null) {
+                    dataKits.set("TestKit." + cmp2, kit.getItem(i));
+                    cmp2++;
+                }
+            }
+
+            try {
+                dataKits.save("./plugins/OBGiveAll/dataKits.yml");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        System.out.println("InventoryCloseEvent triggered");
         Player player = (Player) event.getPlayer();
 
-        if (player.hasMetadata("OpenedMainGUI")) {
+        if (player.hasMetadata("OpenedMainGUI"))
+        {
             player.removeMetadata("OpenedMainGUI", OBGiveAll.getInstance());
             System.out.println("Metadata OpenedMainGUI removed from player");
         } else {
