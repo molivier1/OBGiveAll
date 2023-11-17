@@ -39,6 +39,9 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         // Creation of a gui of size 54 titled MainGUI
         Inventory gui = Bukkit.createInventory(player, 9 * 6, "MainGUI");
 
+        // En faire un public static ou private static final
+        // pour éviter de tout le temps refaire la var et mettre les valeurs dans construct
+
         // Add items to the GUI
         // Creation kit item named "createItem"
         ItemStack createItem = new ItemStack(Material.NETHER_STAR);
@@ -180,6 +183,12 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
             metaExitItem.setDisplayName(ChatColor.RED + "Exit");
             metaExitItem.setCustomModelData(10066);
             exitItem.setItemMeta(metaExitItem);
+            // Go back
+            ItemStack goBackItem = new ItemStack(Material.PAPER);
+            ItemMeta metaGoBackItem = goBackItem.getItemMeta();
+            metaGoBackItem.setDisplayName("Back");
+            metaGoBackItem.setCustomModelData(10078);
+            goBackItem.setItemMeta(metaGoBackItem);
 
             int[] tabCancel = new int[14];
             for (int i = 0; i < 9; i++) {
@@ -208,7 +217,12 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
                     event.setCancelled(true);
                     System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
-                    System.out.println("Slot 45 of KitCreationGUI clicked");
+                    // if the slot contains the correct item, opens the mainGUI
+                    if (event.getCurrentItem().isSimilar(goBackItem))
+                    {
+                        System.out.println("Slot 45 of KitCreationGUI clicked");
+                        mainGUI(player);
+                    }
                     break;
                 case 48:
                     event.setCancelled(true);
