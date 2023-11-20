@@ -23,6 +23,8 @@ public final class OBGiveAll extends JavaPlugin {
 
         // Init of the various commands
         getCommand("kitsgui").setExecutor(new KitsGuiCommand(this));
+
+        // clear les metadatas onEnable
     }
 
     @Override

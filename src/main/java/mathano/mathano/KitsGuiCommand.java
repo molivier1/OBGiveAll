@@ -1,5 +1,6 @@
 package mathano.mathano;
 
+import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,6 +19,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class KitsGuiCommand implements CommandExecutor, Listener {
     // Button to create a kit
@@ -32,10 +35,6 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
     private static final ItemStack glassPaneItem = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
     private static final ItemMeta metaGlassPaneItem = glassPaneItem.getItemMeta();
 
-    // Button to name the kit
-    private static final ItemStack nameKitItem = new ItemStack(Material.OAK_SIGN);
-    private static final ItemMeta metaKitItem = nameKitItem.getItemMeta();
-
 
     // Button to save the kit
     private static final ItemStack saveKitItem = new ItemStack(Material.PAPER);
@@ -44,6 +43,8 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
     // Button to go back in mainGUI
     private static final ItemStack goBackItem = new ItemStack(Material.PAPER);
     private static final ItemMeta metaGoBackItem = goBackItem.getItemMeta();
+
+    private static int taille;
 
 
     public KitsGuiCommand(OBGiveAll plugin) {
@@ -61,10 +62,6 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         // Delimitation of the GUI
         metaGlassPaneItem.setDisplayName(" ");
         glassPaneItem.setItemMeta(metaGlassPaneItem);
-
-        // Button to name the kit
-        metaKitItem.setDisplayName("Name of the kit");
-        nameKitItem.setItemMeta(metaKitItem);
 
         // Button to save the kit
         metaSaveItem.setDisplayName("Save kit");
@@ -114,7 +111,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
             @Override
             public void run() {
                 // Metadata given to keep track of the opened inventories
-                player.setMetadata("OpenedMainGUI", new FixedMetadataValue(OBGiveAll.getInstance(), gui));
+                player.setMetadata("OpenedMainGUI7650", new FixedMetadataValue(OBGiveAll.getInstance(), gui));
                 System.out.println("Metadata OpenedMainGUI given to player");
             }
         }.runTaskLater(OBGiveAll.getInstance(), 1);
@@ -130,8 +127,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         // Set the different items on the gui
         // Set the position of the buttons in the gui
         gui.setItem(53, exitItem);
-        gui.setItem(48, nameKitItem);
-        gui.setItem(50, saveKitItem);
+        gui.setItem(49, saveKitItem);
         gui.setItem(45, goBackItem);
         // Set the glass pane
         for (int i = 45 - 9; i < 45; i++) {
@@ -139,7 +135,8 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         }
         gui.setItem(46, glassPaneItem);
         gui.setItem(47, glassPaneItem);
-        gui.setItem(49, glassPaneItem);
+        gui.setItem(48, glassPaneItem);
+        gui.setItem(50, glassPaneItem);
         gui.setItem(51, glassPaneItem);
         gui.setItem(52, glassPaneItem);
 
@@ -161,7 +158,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
     public void onClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
 
-        if (player.hasMetadata("OpenedMainGUI")) {
+        if (player.hasMetadata("OpenedMainGUI7650")) {
             event.setCancelled(true);
             System.out.println("Cancelled event InventoryClickEvent for MainGUI");
 
@@ -179,25 +176,11 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         }
 
         if (player.hasMetadata("OpenedKitCreationGUI")) {
-            int[] tabCancel = new int[14];
-            for (int i = 0; i < 9; i++) {
-                tabCancel[i] = 36 + i;
-            }
+            if (event.getCurrentItem() != null && event.getCurrentItem().isSimilar(glassPaneItem)) {
+                event.setCancelled(true);
+                System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
-            tabCancel[9] = 46;
-            tabCancel[10] = 47;
-            tabCancel[11] = 49;
-            tabCancel[12] = 51;
-            tabCancel[13] = 52;
-
-            for (int i = 0; i < 14; i++) {
-                if (event.getSlot() == tabCancel[i]) {
-                    event.setCancelled(true);
-                    System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
-
-                    System.out.println("White stained-glass pane of KitCreationGUI clicked");
-                    break;
-                }
+                System.out.println("White stained-glass pane of KitCreationGUI clicked");
             }
 
             switch (event.getSlot()) {
@@ -212,25 +195,44 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
                         mainGUI(player);
                     }
                     break;
-                case 48:
+                case 49:
                     event.setCancelled(true);
                     System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
-                    System.out.println("Slot 48 of KitCreationGUI clicked");
-                    break;
-                case 50:
-                    event.setCancelled(true);
-                    System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
+                    System.out.println("Slot 49 of KitCreationGUI clicked");
 
-                    System.out.println("Slot 50 of KitCreationGUI clicked");
-                    saveKit(event.getClickedInventory());
+                    taille = 0;
+                    for (int i = 0; i < 36; i++) {
+                        if (event.getClickedInventory().getItem(i) != null) {
+                            taille++;
+                        }
+                    }
+
+                    if (taille > 0) {
+                        new AnvilGUI.Builder()
+                                .onClick((slot, stateSnapshot) -> { // Either use sync or async variant, not both
+                                    if (slot != AnvilGUI.Slot.OUTPUT) {
+                                        return Collections.emptyList();
+                                    }
+
+                                    if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")) {
+                                        saveKit(event.getClickedInventory(), player, stateSnapshot.getText(), taille);
+                                        return Arrays.asList(AnvilGUI.ResponseAction.close());
+                                    } else {
+                                        return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
+                                    }
+                                })
+                                .text("Nom du kit")              //sets the text the GUI should start with
+                                .title("Nom du kit")             //set the title of the GUI (only works in 1.14+)
+                                .plugin(OBGiveAll.getInstance()) //set the plugin instance
+                                .open(player);
+                    }
                     break;
                 case 53:
-                    // if the bedrock block is clicked, cancel this action and close the gui
-                    if (event.getCurrentItem().isSimilar(exitItem)) {
-                        event.setCancelled(true);
-                        System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
+                    event.setCancelled(true);
+                    System.out.println("Cancelled event InventoryClickEvent for KitCreationGUI");
 
+                    if (event.getCurrentItem().isSimilar(exitItem)) {
                         System.out.println("Slot 53 of KitCreationGUI clicked");
                         player.closeInventory();
                     }
@@ -239,32 +241,33 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         }
     }
 
-    public void saveKit(Inventory kit) {
+    public void saveKit(Inventory kit, Player player, String nom, int taille) {
+        // init variables
+        ItemStack[] items = new ItemStack[taille];
+
         int cmp = 0;
+
         for (int i = 0; i < 36; i++) {
             if (kit.getItem(i) != null) {
+                items[cmp] = kit.getItem(i);
                 cmp++;
             }
         }
 
-        System.out.println("Taille du tab : " + cmp);
+        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 
-        if (cmp > 0) {
-            FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
-            int cmp2 = 0;
+        if (dataKits.contains(nom)) {
+            dataKits.set(nom, null);
+        }
 
-            for (int i = 0; i < 36; i++) {
-                if (kit.getItem(i) != null) {
-                    dataKits.set("TestKit." + cmp2, kit.getItem(i));
-                    cmp2++;
-                }
-            }
+        for (int i = 0; i < cmp; i++) {
+            dataKits.set(nom + "." + i, kit.getItem(i));
+        }
 
-            try {
-                dataKits.save("./plugins/OBGiveAll/dataKits.yml");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            dataKits.save("./plugins/OBGiveAll/dataKits.yml");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -272,10 +275,9 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
     public void onClose(InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
 
-        if (player.hasMetadata("OpenedMainGUI"))
-        {
-            player.removeMetadata("OpenedMainGUI", OBGiveAll.getInstance());
-            System.out.println("Metadata OpenedMainGUI removed from player");
+        if (player.hasMetadata("OpenedMainGUI7650")) {
+            player.removeMetadata("OpenedMainGUI7650", OBGiveAll.getInstance());
+            System.out.println("Metadata OpenedMainGUI7650 removed from player");
         } else {
             if (player.hasMetadata("OpenedKitCreationGUI")) {
                 player.removeMetadata("OpenedKitCreationGUI", OBGiveAll.getInstance());
