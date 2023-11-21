@@ -401,7 +401,7 @@ public class KitsGuiCommand implements CommandExecutor, Listener {
         }
 
         for (int i = 0; i < cmp; i++) {
-            dataKits.set(name + "." + i, kit.getItem(i));
+            dataKits.set(name + "." + i, items[i]);
         }
 
         try {
