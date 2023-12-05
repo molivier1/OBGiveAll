@@ -2,7 +2,7 @@ name: OBGiveAll
 version: '${project.version}'
 main: mathano.mathano.OBGiveAll
 api-version: '1.13'
-authors: [Mathano]
+authors: [ Mathano ]
 description: Permits the creation of custom kits intended for give all.
 commands:
   kitsgui:

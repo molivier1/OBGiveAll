@@ -22,7 +22,7 @@ public final class OBGiveAll extends JavaPlugin {
         reloadDataKitsConfig();
 
         // Init of the various commands
-        getCommand("kitsgui").setExecutor(new KitsGuiCommand(this));
+        getCommand("kitsgui").setExecutor(new KitsGui());
 
         // clear les metadatas onEnable
     }
