@@ -10,3 +10,9 @@ commands:
     usage: /kitsgui
     permission: obgiveall.kitsgui
     permission-message: You do not have permission.
+
+  obgiveall:
+    description: Permits the creation of custom kits.
+    usage: /obgiveall
+    permission: obgiveall.kitsgui
+    permission-message: You do not have permission.

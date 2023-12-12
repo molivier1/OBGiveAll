@@ -12,6 +12,9 @@ public final class OBGiveAll extends JavaPlugin {
     private FileConfiguration dataKitsConfig;
     private File dataKitsConfigFile;
 
+    private FileConfiguration rewardsConfig;
+    private File rewardsConfigFile;
+
     @Override
     public void onEnable() {
         // Plugin startup logic
@@ -21,10 +24,12 @@ public final class OBGiveAll extends JavaPlugin {
         dataKitsConfigFile = new File(getDataFolder(), "dataKits.yml");
         reloadDataKitsConfig();
 
+        rewardsConfigFile = new File(getDataFolder(), "rewards.yml");
+        reloadRewardsConfig();
+
         // Init of the various commands
         getCommand("kitsgui").setExecutor(new KitsGui());
-
-        // clear les metadatas onEnable
+        getCommand("obgiveall").setExecutor(new OBGiveAllCommand());
     }
 
     @Override
@@ -45,5 +50,16 @@ public final class OBGiveAll extends JavaPlugin {
 
     public FileConfiguration getDataKitsConfig() {
         return dataKitsConfig;
+    }
+
+    public void reloadRewardsConfig() {
+        if(!rewardsConfigFile.exists()) {
+            saveResource("rewards.yml", false);
+        }
+        rewardsConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(rewardsConfigFile);
+    }
+
+    public FileConfiguration getRewardsConfig() {
+        return rewardsConfig;
     }
 }
