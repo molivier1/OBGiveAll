@@ -30,6 +30,7 @@ public final class OBGiveAll extends JavaPlugin {
         // Init of the various commands
         getCommand("kitsgui").setExecutor(new KitsGui());
         getCommand("obgiveall").setExecutor(new OBGiveAllCommand());
+        getCommand("rewards").setExecutor(new Rewards());
     }
 
     @Override

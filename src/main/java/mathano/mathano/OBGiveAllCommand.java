@@ -38,25 +38,31 @@ public class OBGiveAllCommand implements CommandExecutor {
             toEveryone(player, args[1], server);
         } else {
             // Gives to specific player
-            toSpecificPlayer(player, args[1], server);
+            toSpecificPlayer(player, args[1], server, args[0]);
         }
 
         return true;
     }
 
-    public void toEveryone(Player player, String kitName, Server server) {
+    public void toEveryone(Player admin, String kitName, Server server) {
         FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
+        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 
-        player.sendMessage("Kit : " + kitName + " given to everyone");
+        if (dataKits.contains(kitName)) {
+            int playersOnline = server.getOnlinePlayers().size();
+            Player[] listPlayer = server.getOnlinePlayers().toArray(new Player[playersOnline]);
+            Player currentPlayer;
 
-        int playersOnline = server.getOnlinePlayers().size();
-        Player[] listPlayer = server.getOnlinePlayers().toArray(new Player[playersOnline]);
-        Player currentPlayer;
+            for (int i = 0; i < playersOnline; i++) {
+                currentPlayer = listPlayer[i];
 
-        for (int i = 0; i < playersOnline; i++) {
-            currentPlayer = listPlayer[i];
+                rewards.set(currentPlayer.getUniqueId() + "." + kitName, 1);
 
-            rewards.set(currentPlayer.getUniqueId() + "." + kitName, 1);
+                currentPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
+                currentPlayer.sendMessage("/reward pour récuperer votre récompense.");
+            }
+
+            admin.sendMessage("Kit : " + kitName + " given to everyone");
 
             try {
                 rewards.save("./plugins/OBGiveAll/rewards.yml");
@@ -65,10 +71,40 @@ public class OBGiveAllCommand implements CommandExecutor {
             }
 
             OBGiveAll.getInstance().reloadRewardsConfig();
+        } else {
+            admin.sendMessage(ChatColor.RED + "Le kit " + kitName + " n'existe pas !");
         }
     }
 
-    public void toSpecificPlayer(Player player, String kitName, Server server) {
+    public void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
+        FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
 
+        if(server.getPlayer(playerName).hasPlayedBefore()) {
+
+            FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
+
+            if (dataKits.contains(kitName)) {
+                Player givenPlayer = server.getPlayer(playerName);
+
+                rewards.set(givenPlayer.getUniqueId() + "." + kitName, 1);
+
+                admin.sendMessage("Kit " + kitName + " given to player ");
+
+                givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
+                givenPlayer.sendMessage("/reward pour récuperer votre récompense.");
+
+                try {
+                    rewards.save("./plugins/OBGiveAll/rewards.yml");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                OBGiveAll.getInstance().reloadRewardsConfig();
+            } else {
+                admin.sendMessage(ChatColor.RED + "Le kit " + kitName + " n'existe pas !");
+            }
+        } else {
+            admin.sendMessage(ChatColor.RED + "Le joueur " + playerName + " n'a jamais joué sur ce serveur !");
+        }
     }
 }

@@ -12,7 +12,13 @@ commands:
     permission-message: You do not have permission.
 
   obgiveall:
-    description: Permits the creation of custom kits.
+    description: Gives kits to players.
     usage: /obgiveall
-    permission: obgiveall.kitsgui
+    permission: obgiveall.giveall
+    permission-message: You do not have permission.
+
+  rewards:
+    description: Open the rewards menu.
+    usage: /rewards
+    permission: obgiveall.rewards
     permission-message: You do not have permission.
