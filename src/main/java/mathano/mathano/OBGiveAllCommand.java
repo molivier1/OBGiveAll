@@ -59,7 +59,7 @@ public class OBGiveAllCommand implements CommandExecutor {
                 rewards.set(currentPlayer.getUniqueId() + "." + kitName, 1);
 
                 currentPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                currentPlayer.sendMessage("/reward pour récuperer votre récompense.");
+                currentPlayer.sendMessage("/rewards pour récuperer votre récompense.");
             }
 
             admin.sendMessage("Kit : " + kitName + " given to everyone");
@@ -84,15 +84,24 @@ public class OBGiveAllCommand implements CommandExecutor {
             FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 
             if (dataKits.contains(kitName)) {
+
                 Player givenPlayer = server.getPlayer(playerName);
 
-                rewards.set(givenPlayer.getUniqueId() + "." + kitName, 1);
+                int numberOfKits = 1;
+
+                if(rewards.contains(givenPlayer.getUniqueId() + "." + kitName)){
+                    numberOfKits = rewards.getInt(givenPlayer.getUniqueId() + "." + kitName);
+                    numberOfKits++;
+                }
 
                 admin.sendMessage("Kit " + kitName + " given to player ");
 
-                givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                givenPlayer.sendMessage("/reward pour récuperer votre récompense.");
+                rewards.set(givenPlayer.getUniqueId() + "." + kitName, numberOfKits);
 
+                givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
+                givenPlayer.sendMessage("/rewards pour récuperer votre récompense.");
+
+                // A delete avec le temps car il faut cache
                 try {
                     rewards.save("./plugins/OBGiveAll/rewards.yml");
                 } catch (IOException e) {

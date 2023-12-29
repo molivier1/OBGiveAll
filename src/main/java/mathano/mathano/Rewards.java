@@ -16,6 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.IOException;
+
 public class Rewards implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -43,14 +45,13 @@ public class Rewards implements CommandExecutor {
                 .disableAllInteractions()
                 .create();
 
-        rewards.open(player);
-
         FileConfiguration rewardsFile = OBGiveAll.getInstance().getRewardsConfig();
         ConfigurationSection userSection = rewardsFile.getConfigurationSection(player.getUniqueId().toString());
+        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         for (String key : userSection.getKeys(false)) {
             int amount = userSection.getInt(key);
             for (int i =0; i<amount; i++) {
-                ItemStack icon = new ItemStack(Material.CHEST);
+                ItemStack icon = dataKits.getItemStack(key + ".name");
                 ItemMeta meta = icon.getItemMeta();
                 meta.setDisplayName(key);
                 icon.setItemMeta(meta);
@@ -59,23 +60,51 @@ public class Rewards implements CommandExecutor {
 
                     // donne item + decremente/delete du file en CACHE
                     giveKit(player, key);
+
+                    int numberOfKits = userSection.getInt(key);
+                    numberOfKits--;
+
+                    if(numberOfKits <= 0)
+                    {
+                        userSection.set(key, null);
+                    }
+                    else {
+                        userSection.set(key, numberOfKits);
+                    }
+
+                    if (userSection.getKeys(false).size() <= 0) {
+                        rewardsFile.set(player.getUniqueId().toString(), null);
+                    }
+
+                    try {
+                        OBGiveAll.getInstance().getRewardsConfig().save("./plugins/OBGiveAll/rewards.yml");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    OBGiveAll.getInstance().reloadRewardsConfig();
+
+                    rewards.close(player);
                 });
                 rewards.addItem(kitItem);
             }
         }
+
+        rewards.open(player);
     }
 
     public void giveKit(Player player, String kitName) {
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         ConfigurationSection kitSection = dataKits.getConfigurationSection(kitName);
 
-        int cmp = 0;
+        int numberOfKeys = kitSection.getKeys(false).size() - 1;
         int check = 0;
 
-        while(kitSection.getItemStack(String.valueOf(cmp)) != null) {
-            ItemStack currentItem = kitSection.getItemStack(String.valueOf(cmp));
+        for(int i = 0; i < numberOfKeys; i++)
+        {
+            ItemStack currentItem = kitSection.getItemStack(String.valueOf(i));
 
-            if(player.getInventory().firstEmpty() != 1) {
+            if(player.getInventory().firstEmpty() != -1) {
                 player.getInventory().addItem(currentItem);
             } else {
                 //player.item
