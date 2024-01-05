@@ -302,6 +302,27 @@ public class KitsGui implements CommandExecutor {
             FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
             dataKits.set(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), null);
             player.sendMessage(ChatColor.GREEN + "Le kit " + inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName() + " a été supprimé !");
+
+            FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
+            for (String key : rewards.getKeys(false)) {
+                ConfigurationSection section = rewards.getConfigurationSection(key);
+
+                if (section.contains(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName())) {
+                    section.set(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), null);
+                    if (section.getKeys(false).size() <= 0) {
+                        rewards.set(player.getUniqueId().toString(), null);
+                    }
+                }
+            }
+
+            try {
+                OBGiveAll.getInstance().getRewardsConfig().save("./plugins/OBGiveAll/rewards.yml");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            OBGiveAll.getInstance().reloadRewardsConfig();
+
             mainGui(player);
         });
 
