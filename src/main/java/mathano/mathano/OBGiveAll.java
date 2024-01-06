@@ -32,6 +32,9 @@ public final class OBGiveAll extends JavaPlugin {
         getCommand("kitsgui").setExecutor(new KitsGui());
         getCommand("obgiveall").setExecutor(new OBGiveAllCommand());
         getCommand("rewards").setExecutor(new Rewards());
+
+        // Tab completions
+        getCommand("obgiveall").setTabCompleter(new AutoCompletion());
     }
 
     @Override
