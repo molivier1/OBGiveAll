@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 
 public class OBGiveAllCommand implements CommandExecutor {
     @Override
@@ -64,13 +63,7 @@ public class OBGiveAllCommand implements CommandExecutor {
 
             admin.sendMessage("Kit : " + kitName + " given to everyone");
 
-            try {
-                rewards.save("./plugins/OBGiveAll/rewards.yml");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            OBGiveAll.getInstance().reloadRewardsConfig();
+            OBGiveAll.getInstance().setRewardsConfig(rewards);
         } else {
             admin.sendMessage(ChatColor.RED + "Le kit " + kitName + " n'existe pas !");
         }
@@ -101,14 +94,7 @@ public class OBGiveAllCommand implements CommandExecutor {
                 givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
                 givenPlayer.sendMessage("/rewards pour récuperer votre récompense.");
 
-                // A delete avec le temps car il faut cache
-                try {
-                    rewards.save("./plugins/OBGiveAll/rewards.yml");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                OBGiveAll.getInstance().reloadRewardsConfig();
+                OBGiveAll.getInstance().setRewardsConfig(rewards);
             } else {
                 admin.sendMessage(ChatColor.RED + "Le kit " + kitName + " n'existe pas !");
             }

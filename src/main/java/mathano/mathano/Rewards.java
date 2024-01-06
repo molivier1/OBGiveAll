@@ -4,9 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.io.IOException;
 
 public class Rewards implements CommandExecutor {
     @Override
@@ -76,13 +73,7 @@ public class Rewards implements CommandExecutor {
                         rewardsFile.set(player.getUniqueId().toString(), null);
                     }
 
-                    try {
-                        OBGiveAll.getInstance().getRewardsConfig().save("./plugins/OBGiveAll/rewards.yml");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    OBGiveAll.getInstance().reloadRewardsConfig();
+                    OBGiveAll.getInstance().setRewardsConfig(rewardsFile);
 
                     rewards.close(player);
                 });

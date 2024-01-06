@@ -18,7 +18,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -315,13 +314,7 @@ public class KitsGui implements CommandExecutor {
                 }
             }
 
-            try {
-                OBGiveAll.getInstance().getRewardsConfig().save("./plugins/OBGiveAll/rewards.yml");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            OBGiveAll.getInstance().reloadRewardsConfig();
+            OBGiveAll.getInstance().setRewardsConfig(rewards);
 
             mainGui(player);
         });
@@ -404,10 +397,6 @@ public class KitsGui implements CommandExecutor {
 
         player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
 
-        try {
-            dataKits.save("./plugins/OBGiveAll/dataKits.yml");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        OBGiveAll.getInstance().setDataKitsConfig(dataKits);
     }
 }
