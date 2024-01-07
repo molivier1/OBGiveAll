@@ -52,6 +52,9 @@ public class KitsGui implements CommandExecutor {
     private static final ItemStack rightItem = new ItemStack(Material.PAPER);
     private static final ItemMeta metaRightItem = rightItem.getItemMeta();
 
+    private static final ItemStack confirmItem = new ItemStack(Material.PAPER);
+    private static final ItemMeta metaConfirmItem = confirmItem.getItemMeta();
+
     private static int length;
 
     public KitsGui() {
@@ -89,6 +92,10 @@ public class KitsGui implements CommandExecutor {
         metaRightItem.setDisplayName(ChatColor.WHITE + "Page suivante");
         metaRightItem.setCustomModelData(10053);
         rightItem.setItemMeta(metaRightItem);
+
+        metaConfirmItem.setDisplayName(ChatColor.GREEN + "Confirmer");
+        metaConfirmItem.setCustomModelData(10064);
+        confirmItem.setItemMeta(metaConfirmItem);
 
         length = 0;
     }
@@ -199,10 +206,14 @@ public class KitsGui implements CommandExecutor {
                                 return Collections.emptyList();
                             }
 
-                            if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")) {
+                            if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")
+                                    && !OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText())) {
                                 saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), null);
                                 return Arrays.asList(AnvilGUI.ResponseAction.close());
                             } else {
+                                if (OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText())) {
+                                    player.sendMessage(ChatColor.RED + "Le kit " + stateSnapshot.getText() + " existe déjà !");
+                                }
                                 return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                             }
                         })
@@ -272,14 +283,24 @@ public class KitsGui implements CommandExecutor {
                             }
 
                             if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")) {
-                                saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
-                                return Arrays.asList(AnvilGUI.ResponseAction.close());
+                                if (OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText()) && stateSnapshot.getText().equals(name)) {
+                                    saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
+                                    return Arrays.asList(AnvilGUI.ResponseAction.close());
+                                }
+
+                                if (!OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText())) {
+                                    saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
+                                    return Arrays.asList(AnvilGUI.ResponseAction.close());
+                                } else {
+                                    player.sendMessage(ChatColor.RED + "Le kit " + stateSnapshot.getText() + " existe déjà !");
+                                    return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
+                                }
                             } else {
                                 return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                             }
                         })
                         // Sets the text the GUI should start with
-                        .text("Nom du kit")
+                        .text(name)
                         // Set the title of the GUI (only works in 1.14+)
                         .title("Nom du kit")
                         // Set the plugin instance
@@ -298,25 +319,25 @@ public class KitsGui implements CommandExecutor {
         GuiItem deleteKitItemGui = ItemBuilder.from(deleteKitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
 
-            FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
-            dataKits.set(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), null);
-            player.sendMessage(ChatColor.GREEN + "Le kit " + inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName() + " a été supprimé !");
 
-            FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
-            for (String key : rewards.getKeys(false)) {
-                ConfigurationSection section = rewards.getConfigurationSection(key);
+            Gui validateDeleteGui = Gui.gui()
+                    .title(Component.text("Confirmer la suppression"))
+                    .rows(1)
+                    .create();
 
-                if (section.contains(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName())) {
-                    section.set(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), null);
-                    if (section.getKeys(false).size() <= 0) {
-                        rewards.set(player.getUniqueId().toString(), null);
-                    }
-                }
-            }
+            GuiItem confirmItemGui = ItemBuilder.from(confirmItem).asGuiItem(inventoryClickEvent1 -> {
+                deleteKit(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), player);
+                mainGui(player);
+            });
 
-            OBGiveAll.getInstance().setRewardsConfig(rewards);
+            GuiItem cancelItemGui = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent1 -> {
+                mainGui(player);
+            });
 
-            mainGui(player);
+            validateDeleteGui.setItem(2, confirmItemGui);
+            validateDeleteGui.setItem(6, cancelItemGui);
+
+            validateDeleteGui.open(player);
         });
 
         // Placing of the buttons
@@ -384,6 +405,23 @@ public class KitsGui implements CommandExecutor {
 
         if (oldName != null && dataKits.contains(oldName)) {
             dataKits.set(oldName, null);
+
+            FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
+            for (String key : rewards.getKeys(false)) {
+                ConfigurationSection section = rewards.getConfigurationSection(key);
+
+                if (section.contains(oldName)) {
+                    int numberKits = section.getInt(oldName);
+                    section.set(name, numberKits);
+
+                    section.set(oldName, null);
+                    if (section.getKeys(false).size() <= 0) {
+                        rewards.set(player.getUniqueId().toString(), null);
+                    }
+                }
+            }
+
+            OBGiveAll.getInstance().setRewardsConfig(rewards);
         }
 
         dataKits.set(name + ".name", icon);
@@ -402,5 +440,25 @@ public class KitsGui implements CommandExecutor {
         player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
 
         OBGiveAll.getInstance().setDataKitsConfig(dataKits);
+    }
+
+    public static void deleteKit(String name, Player player) {
+        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
+        dataKits.set(name, null);
+        player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été supprimé !");
+
+        FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
+        for (String key : rewards.getKeys(false)) {
+            ConfigurationSection section = rewards.getConfigurationSection(key);
+
+            if (section.contains(name)) {
+                section.set(name, null);
+                if (section.getKeys(false).size() <= 0) {
+                    rewards.set(player.getUniqueId().toString(), null);
+                }
+            }
+        }
+
+        OBGiveAll.getInstance().setRewardsConfig(rewards);
     }
 }

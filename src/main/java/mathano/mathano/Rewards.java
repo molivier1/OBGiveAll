@@ -53,7 +53,9 @@ public class Rewards implements CommandExecutor {
                 meta.setDisplayName(key);
                 icon.setItemMeta(meta);
                 GuiItem kitItem = ItemBuilder.from(icon).asGuiItem(inventoryClickEvent -> {
-                    player.sendMessage(key + " clique");
+                    rewards.close(player);
+
+                    player.sendMessage(ChatColor.GREEN + "Vous avez obtenu la récompense " + key);
 
                     // donne item + decremente/delete du file en CACHE
                     giveKit(player, key);
@@ -74,8 +76,6 @@ public class Rewards implements CommandExecutor {
                     }
 
                     OBGiveAll.getInstance().setRewardsConfig(rewardsFile);
-
-                    rewards.close(player);
                 });
                 rewards.addItem(kitItem);
             }
