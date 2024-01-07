@@ -200,7 +200,7 @@ public class KitsGui implements CommandExecutor {
                             }
 
                             if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")) {
-                                saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText());
+                                saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), null);
                                 return Arrays.asList(AnvilGUI.ResponseAction.close());
                             } else {
                                 return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
@@ -272,7 +272,7 @@ public class KitsGui implements CommandExecutor {
                             }
 
                             if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")) {
-                                saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText());
+                                saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
                                 return Arrays.asList(AnvilGUI.ResponseAction.close());
                             } else {
                                 return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
@@ -360,7 +360,7 @@ public class KitsGui implements CommandExecutor {
         kitEditGui.open(player);
     }
 
-    public static void saveKit(Inventory kit, Player player, String name) {
+    public static void saveKit(Inventory kit, Player player, String name, String oldName) {
         // init variables
         ItemStack[] items = new ItemStack[length];
         ItemStack icon;
@@ -380,6 +380,10 @@ public class KitsGui implements CommandExecutor {
 
         if (dataKits.contains(name)) {
             dataKits.set(name, null);
+        }
+
+        if (oldName != null && dataKits.contains(oldName)) {
+            dataKits.set(oldName, null);
         }
 
         dataKits.set(name + ".name", icon);
