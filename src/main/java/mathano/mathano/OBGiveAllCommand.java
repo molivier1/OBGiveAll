@@ -72,7 +72,7 @@ public class OBGiveAllCommand implements CommandExecutor {
     public void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
         FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
 
-        if(server.getPlayer(playerName).hasPlayedBefore()) {
+        if(server.getPlayer(playerName).hasPlayedBefore() || server.getPlayer(playerName).isOnline()) {
 
             FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 

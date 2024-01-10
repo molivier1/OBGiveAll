@@ -128,7 +128,6 @@ public class KitsGui implements CommandExecutor {
             kitCreationGUI(player);
         });
         GuiItem exitGuiItem = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent -> {
-            player.sendMessage("Exit button clicked !");
             mainGui.close(player);
         });
         GuiItem leftGuiItem = ItemBuilder.from(leftItem).asGuiItem(inventoryClickEvent -> {
@@ -228,7 +227,6 @@ public class KitsGui implements CommandExecutor {
         });
         GuiItem exitGuiItem = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
-            player.sendMessage("Exit button clicked !");
             kitCreationGui.close(player);
         });
         GuiItem glassPaneItemGui = ItemBuilder.from(glassPaneItem).asGuiItem(inventoryClickEvent -> {
@@ -310,7 +308,6 @@ public class KitsGui implements CommandExecutor {
         });
         GuiItem exitGuiItem = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
-            player.sendMessage("Exit button clicked !");
             kitEditGui.close(player);
         });
         GuiItem glassPaneItemGui = ItemBuilder.from(glassPaneItem).asGuiItem(inventoryClickEvent -> {
