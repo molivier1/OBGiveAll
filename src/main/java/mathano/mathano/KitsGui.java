@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.text.Component;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
@@ -252,7 +253,7 @@ public class KitsGui implements CommandExecutor {
     }
 
     public static void kitEditGUI(Player player, String name) {
-        Gui kitEditGui = Gui.gui()
+        StorageGui kitEditGui = Gui.storage()
                 .title(Component.text("KitEditGUI"))
                 .rows(6)
                 .create();
@@ -354,20 +355,13 @@ public class KitsGui implements CommandExecutor {
 
         ConfigurationSection section = OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name);
 
-        ItemStack currentItem;
-
-        GuiItem currentItemGui;
-
         int cmp = section.getKeys(false).size() - 1;
 
         for (int i = 0; i < cmp; i++) {
             String path = Integer.toString(i);
 
             if (section.isItemStack(path)) {
-                currentItem = section.getItemStack(path);
-                currentItemGui = ItemBuilder.from(currentItem).asGuiItem();
-
-                kitEditGui.setItem(i, currentItemGui);
+                kitEditGui.addItem(section.getItemStack(path));
             }
         }
 
