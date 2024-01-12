@@ -1,5 +1,6 @@
 package mathano.mathano;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,6 +28,9 @@ public final class OBGiveAll extends JavaPlugin {
 
         rewardsConfigFile = new File(getDataFolder(), "rewards.yml");
         reloadRewardsConfig();
+
+        // Scheduler that saves the cached data into the files every 15 minutes
+        scheduleSave();
 
         // Init of the various commands
         getCommand("kitsgui").setExecutor(new KitsGui());
@@ -99,5 +103,15 @@ public final class OBGiveAll extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void scheduleSave() {
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                Bukkit.broadcastMessage("Test scheduler changer value !!");
+                saveRewardsConfig();
+            }
+        }, 0L, 20L); //0 Tick initial delay, 20 Tick (1 Second) between repeats
     }
 }

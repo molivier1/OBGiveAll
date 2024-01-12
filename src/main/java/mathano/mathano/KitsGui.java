@@ -209,13 +209,18 @@ public class KitsGui implements CommandExecutor {
                                 return Collections.emptyList();
                             }
 
-                            if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")
-                                    && !OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText())) {
+                            if (!stateSnapshot.getText().equalsIgnoreCase("")
+                                    && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")
+                                    && !OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText())
+                                    && !stateSnapshot.getText().contains(" ")) {
                                 saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), null);
                                 return Arrays.asList(AnvilGUI.ResponseAction.close());
                             } else {
                                 if (OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText())) {
                                     player.sendMessage(ChatColor.RED + "Le kit " + stateSnapshot.getText() + " existe déjà !");
+                                }
+                                if (stateSnapshot.getText().contains(" ")) {
+                                    player.sendMessage(ChatColor.RED + "Le kit ne peut pas avoir d'espaces dans son nom !");
                                 }
                                 return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                             }
@@ -285,7 +290,9 @@ public class KitsGui implements CommandExecutor {
                                 return Collections.emptyList();
                             }
 
-                            if (!stateSnapshot.getText().equalsIgnoreCase("") && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")) {
+                            if (!stateSnapshot.getText().equalsIgnoreCase("")
+                                    && !stateSnapshot.getText().equalsIgnoreCase("Nom du kit")
+                                    && !stateSnapshot.getText().contains(" ")){
                                 if (OBGiveAll.getInstance().getDataKitsConfig().contains(stateSnapshot.getText()) && stateSnapshot.getText().equals(name)) {
                                     saveKit(inventoryClickEvent.getClickedInventory(), player, stateSnapshot.getText(), OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
                                     return Arrays.asList(AnvilGUI.ResponseAction.close());
@@ -299,6 +306,9 @@ public class KitsGui implements CommandExecutor {
                                     return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                                 }
                             } else {
+                                if (stateSnapshot.getText().contains(" ")) {
+                                    player.sendMessage(ChatColor.RED + "Le kit ne peut pas avoir d'espaces dans son nom !");
+                                }
                                 return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                             }
                         })
@@ -436,6 +446,7 @@ public class KitsGui implements CommandExecutor {
         player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
 
         OBGiveAll.getInstance().setDataKitsConfig(dataKits);
+        OBGiveAll.getInstance().saveDataKitsConfig();
     }
 
     // Deletes the selected kit from the DataKits and Rewards cache
