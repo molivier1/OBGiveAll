@@ -35,6 +35,8 @@ public class Rewards implements CommandExecutor {
         return true;
     }
 
+    // Gui that displays the available rewards for the player, and they can be redeemed by clicking on the kit's icons.
+    // If the player has no available rewards, the Gui won't open and just notify the player that he has no rewards.
     public void rewardsGui(Player player) {
         Gui rewards = Gui.gui()
                 .title(Component.text("Récompenses"))
@@ -84,6 +86,8 @@ public class Rewards implements CommandExecutor {
         rewards.open(player);
     }
 
+    // Read through the dataKits config and give every item linked to the specified kit.
+    // Decrements by 1 the corresponding kit in the rewards config.
     public void giveKit(Player player, String kitName) {
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         ConfigurationSection kitSection = dataKits.getConfigurationSection(kitName);

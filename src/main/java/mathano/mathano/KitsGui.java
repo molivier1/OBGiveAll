@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class KitsGui implements CommandExecutor {
+    // Init of the various buttons as attributes because they are used in different Guis
     // Button to create a kit
     private static final ItemStack createItem = new ItemStack(Material.NETHER_STAR);
     private static final ItemMeta metaCreateItem = createItem.getItemMeta();
@@ -115,6 +116,7 @@ public class KitsGui implements CommandExecutor {
         return true;
     }
 
+    // Gui that shows every created kits
     public static void mainGui(Player player) {
         // Creation of the main interface
         PaginatedGui mainGui = Gui.paginated()
@@ -176,6 +178,7 @@ public class KitsGui implements CommandExecutor {
         mainGui.open(player);
     }
 
+    // Gui that permits the creation of the kits
     public static void kitCreationGUI(Player player) {
         // Creation of the kit creation interface
         Gui kitCreationGui = Gui.gui()
@@ -252,6 +255,7 @@ public class KitsGui implements CommandExecutor {
         kitCreationGui.open(player);
     }
 
+    // This Gui shows the Items in the selected kit and permits to edit them
     public static void kitEditGUI(Player player, String name) {
         StorageGui kitEditGui = Gui.storage()
                 .title(Component.text("KitEditGUI"))
@@ -372,6 +376,7 @@ public class KitsGui implements CommandExecutor {
         kitEditGui.open(player);
     }
 
+    // Save the kit in the cache, handles renaming
     public static void saveKit(Inventory kit, Player player, String name, String oldName) {
         // init variables
         ItemStack[] items = new ItemStack[length];
@@ -433,6 +438,7 @@ public class KitsGui implements CommandExecutor {
         OBGiveAll.getInstance().setDataKitsConfig(dataKits);
     }
 
+    // Deletes the selected kit from the DataKits and Rewards cache
     public static void deleteKit(String name, Player player) {
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         dataKits.set(name, null);

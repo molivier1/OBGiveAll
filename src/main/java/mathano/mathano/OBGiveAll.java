@@ -44,6 +44,7 @@ public final class OBGiveAll extends JavaPlugin {
         saveDataKitsConfig();
     }
 
+    // Returns the instance of the main class, so it can be used in the other classes
     public static OBGiveAll getInstance() {
         return instance;
     }
@@ -55,14 +56,17 @@ public final class OBGiveAll extends JavaPlugin {
         dataKitsConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(dataKitsConfigFile);
     }
 
+    // Getter for dataKits...
     public FileConfiguration getDataKitsConfig() {
         return dataKitsConfig;
     }
 
+    // ...and Setter for dataKits
     public void setDataKitsConfig(FileConfiguration newDataKitsConfig) {
         dataKitsConfig = newDataKitsConfig;
     }
 
+    // Saves cached dataKits into dataKits.yml
     public void saveDataKitsConfig () {
         try {
             dataKitsConfig.save("./plugins/OBGiveAll/dataKits.yml");
@@ -78,14 +82,17 @@ public final class OBGiveAll extends JavaPlugin {
         rewardsConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(rewardsConfigFile);
     }
 
+    // Getter for rewards...
     public FileConfiguration getRewardsConfig() {
         return rewardsConfig;
     }
 
+    // ...and Setter for rewards
     public void setRewardsConfig(FileConfiguration newRewardsConfig) {
         rewardsConfig = newRewardsConfig;
     }
 
+    // Saves cached rewards into rewards.yml
     public void saveRewardsConfig () {
         try {
             rewardsConfig.save("./plugins/OBGiveAll/rewards.yml");

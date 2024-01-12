@@ -43,6 +43,7 @@ public class OBGiveAllCommand implements CommandExecutor {
         return true;
     }
 
+    // Adds specified kit in the rewards config to every connected players
     public void toEveryone(Player admin, String kitName, Server server) {
         FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
@@ -69,6 +70,7 @@ public class OBGiveAllCommand implements CommandExecutor {
         }
     }
 
+    // Adds specified kit in the rewards config to a player that already played on the server
     public void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
         FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
 
