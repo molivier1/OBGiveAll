@@ -19,7 +19,7 @@ public class Rewards implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot use this command.");
+            sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
             return true;
         }
 
@@ -60,8 +60,6 @@ public class Rewards implements CommandExecutor {
                     player.sendMessage(ChatColor.GREEN + "Vous avez obtenu la récompense " + key);
 
                     // donne item + decremente/delete du file en CACHE
-                    giveKit(player, key);
-
                     int numberOfKits = userSection.getInt(key);
                     numberOfKits--;
 
@@ -78,6 +76,8 @@ public class Rewards implements CommandExecutor {
                     }
 
                     OBGiveAll.getInstance().setRewardsConfig(rewardsFile);
+
+                    giveKit(player, key);
                 });
                 rewards.addItem(kitItem);
             }

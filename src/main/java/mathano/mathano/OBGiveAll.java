@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public final class OBGiveAll extends JavaPlugin {
@@ -117,12 +118,15 @@ public final class OBGiveAll extends JavaPlugin {
             }
         }, 0L, 18000L); //0 Tick initial delay, 20 Tick (1 Second) between repeats in our case 18k ticks = 15 minutes
     */
-        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
+        ScheduledExecutorService executors = Executors.newScheduledThreadPool(1);
+
+        executors.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                     Bukkit.broadcastMessage("Test scheduler changer value !!");
                     saveRewardsConfig();
             }
         }, 0, 15, TimeUnit.MINUTES);
+        //executors.shutdown();
     }
 }

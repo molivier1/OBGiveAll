@@ -13,21 +13,21 @@ public class OBGiveAllCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot use this command.");
+            sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
             return true;
         }
 
         Player player = ((Player) sender).getPlayer();
 
         if (args.length <= 1) {
-            player.sendMessage(ChatColor.RED + "Bad usage");
+            player.sendMessage(ChatColor.RED + "Mauvais usage de la commande.");
             return true;
         }
 
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 
         if (!dataKits.contains(args[1])) {
-            player.sendMessage(ChatColor.RED + "Kit " + args[1] + " doesn't exists !");
+            player.sendMessage(ChatColor.RED + "Le kit " + args[1] + " n'existe pas !");
             return true;
         }
 
@@ -56,13 +56,20 @@ public class OBGiveAllCommand implements CommandExecutor {
             for (int i = 0; i < playersOnline; i++) {
                 currentPlayer = listPlayer[i];
 
-                rewards.set(currentPlayer.getUniqueId() + "." + kitName, 1);
+                int numberOfKits = 1;
+
+                if (rewards.contains(currentPlayer.getUniqueId() + "." + kitName)) {
+                    numberOfKits = rewards.getInt(currentPlayer.getUniqueId() + "." + kitName);
+                    numberOfKits++;
+                }
+
+                rewards.set(currentPlayer.getUniqueId() + "." + kitName, numberOfKits);
 
                 currentPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
                 currentPlayer.sendMessage("/rewards pour récuperer votre récompense.");
             }
 
-            admin.sendMessage("Kit : " + kitName + " given to everyone");
+            admin.sendMessage("Le kit " + kitName + " a été donné à tous les joueurs !");
 
             OBGiveAll.getInstance().setRewardsConfig(rewards);
         } else {
@@ -89,7 +96,7 @@ public class OBGiveAllCommand implements CommandExecutor {
                     numberOfKits++;
                 }
 
-                admin.sendMessage("Kit " + kitName + " given to player ");
+                admin.sendMessage("Le kit " + kitName + " a été donné à " + playerName);
 
                 rewards.set(givenPlayer.getUniqueId() + "." + kitName, numberOfKits);
 
