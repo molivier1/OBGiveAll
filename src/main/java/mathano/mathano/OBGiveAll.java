@@ -1,5 +1,6 @@
 package mathano.mathano;
 
+import mathano.mathano.Utils.AutoCompletion;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;

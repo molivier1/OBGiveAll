@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.StorageGui;
+import mathano.mathano.Utils.ItemGui;
 import net.kyori.adventure.text.Component;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
@@ -24,79 +25,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class KitsGui implements CommandExecutor {
-    // Init of the various buttons as attributes because they are used in different Guis
-    // Button to create a kit
-    private static final ItemStack createItem = new ItemStack(Material.NETHER_STAR);
-    private static final ItemMeta metaCreateItem = createItem.getItemMeta();
-
-    // Button to exit the GUI
-    private static final ItemStack exitItem = new ItemStack(Material.PAPER);
-    private static final ItemMeta metaExitItem = exitItem.getItemMeta();
-
-    // Delimitation of the GUI
-    private static final ItemStack glassPaneItem = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-    private static final ItemMeta metaGlassPaneItem = glassPaneItem.getItemMeta();
-
-
-    // Button to save the kit
-    private static final ItemStack saveKitItem = new ItemStack(Material.PAPER);
-    private static final ItemMeta metaSaveItem = saveKitItem.getItemMeta();
-
-    // Button to go back in mainGUI
-    private static final ItemStack goBackItem = new ItemStack(Material.PAPER);
-    private static final ItemMeta metaGoBackItem = goBackItem.getItemMeta();
-
-    private static final ItemStack deleteKitItem = new ItemStack(Material.TNT);
-    private static final ItemMeta metaDeleteKitItem = deleteKitItem.getItemMeta();
-
-    private static final ItemStack leftItem = new ItemStack(Material.PAPER);
-    private static final ItemMeta metaLeftItem = leftItem.getItemMeta();
-
-    private static final ItemStack rightItem = new ItemStack(Material.PAPER);
-    private static final ItemMeta metaRightItem = rightItem.getItemMeta();
-
-    private static final ItemStack confirmItem = new ItemStack(Material.PAPER);
-    private static final ItemMeta metaConfirmItem = confirmItem.getItemMeta();
-
     public KitsGui() {
-        // Button to create a kit
-        metaCreateItem.setDisplayName(ChatColor.GREEN + "Create a kit");
-        createItem.setItemMeta(metaCreateItem);
-
-        // Button to exit the GUI
-        metaExitItem.setDisplayName(ChatColor.RED + "Exit");
-        metaExitItem.setCustomModelData(10066);
-        exitItem.setItemMeta(metaExitItem);
-
-        // Delimitation of the GUI
-        metaGlassPaneItem.setDisplayName(" ");
-        glassPaneItem.setItemMeta(metaGlassPaneItem);
-
-        // Button to save the kit
-        metaSaveItem.setDisplayName(ChatColor.WHITE + "Save kit");
-        metaSaveItem.setCustomModelData(10064);
-        saveKitItem.setItemMeta(metaSaveItem);
-
-        // Button to go back in mainGUI
-        metaGoBackItem.setDisplayName(ChatColor.WHITE + "Back");
-        metaGoBackItem.setCustomModelData(10078);
-        goBackItem.setItemMeta(metaGoBackItem);
-
-        // Button to delete a kit
-        metaDeleteKitItem.setDisplayName(ChatColor.RED + "Delete kit");
-        deleteKitItem.setItemMeta(metaDeleteKitItem);
-
-        metaLeftItem.setDisplayName(ChatColor.WHITE + "Page précédente");
-        metaLeftItem.setCustomModelData(10051);
-        leftItem.setItemMeta(metaLeftItem);
-
-        metaRightItem.setDisplayName(ChatColor.WHITE + "Page suivante");
-        metaRightItem.setCustomModelData(10053);
-        rightItem.setItemMeta(metaRightItem);
-
-        metaConfirmItem.setDisplayName(ChatColor.GREEN + "Confirmer");
-        metaConfirmItem.setCustomModelData(10064);
-        confirmItem.setItemMeta(metaConfirmItem);
+        new ItemGui();
     }
 
     @Override
@@ -124,19 +54,19 @@ public class KitsGui implements CommandExecutor {
                 .create();
 
         // Creation of the buttons
-        GuiItem createGuiItem = ItemBuilder.from(createItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem createGuiItem = ItemBuilder.from(ItemGui.createItem).asGuiItem(inventoryClickEvent -> {
             kitCreationGUI(player);
         });
-        GuiItem exitGuiItem = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem exitGuiItem = ItemBuilder.from(ItemGui.exitItem).asGuiItem(inventoryClickEvent -> {
             mainGui.close(player);
         });
-        GuiItem leftGuiItem = ItemBuilder.from(leftItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem leftGuiItem = ItemBuilder.from(ItemGui.leftItem).asGuiItem(inventoryClickEvent -> {
             mainGui.previous();
         });
-        GuiItem rightGuiItem = ItemBuilder.from(rightItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem rightGuiItem = ItemBuilder.from(ItemGui.rightItem).asGuiItem(inventoryClickEvent -> {
             mainGui.next();
         });
-        GuiItem glassPaneItemGui = ItemBuilder.from(glassPaneItem).asGuiItem();
+        GuiItem glassPaneItemGui = ItemBuilder.from(ItemGui.glassPaneItem).asGuiItem();
 
         // Placing of the buttons
         for (int i = 1; i < 10; i++) {
@@ -184,11 +114,11 @@ public class KitsGui implements CommandExecutor {
                 .create();
 
         // Creation of the buttons
-        GuiItem goBackGuiItem = ItemBuilder.from(goBackItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem goBackGuiItem = ItemBuilder.from(ItemGui.goBackItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
             mainGui(player);
         });
-        GuiItem saveKitGuiItem = ItemBuilder.from(saveKitItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem saveKitGuiItem = ItemBuilder.from(ItemGui.saveKitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
 
             int length = 0;
@@ -218,11 +148,11 @@ public class KitsGui implements CommandExecutor {
                         .open(player);
             }
         });
-        GuiItem exitGuiItem = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem exitGuiItem = ItemBuilder.from(ItemGui.exitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
             kitCreationGui.close(player);
         });
-        GuiItem glassPaneItemGui = ItemBuilder.from(glassPaneItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem glassPaneItemGui = ItemBuilder.from(ItemGui.glassPaneItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
         });
 
@@ -252,11 +182,11 @@ public class KitsGui implements CommandExecutor {
                 .create();
 
         // Creation of the buttons
-        GuiItem goBackGuiItem = ItemBuilder.from(goBackItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem goBackGuiItem = ItemBuilder.from(ItemGui.goBackItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
             mainGui(player);
         });
-        GuiItem saveKitGuiItem = ItemBuilder.from(saveKitItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem saveKitGuiItem = ItemBuilder.from(ItemGui.saveKitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
 
             int length = 0;
@@ -286,14 +216,14 @@ public class KitsGui implements CommandExecutor {
                         .open(player);
             }
         });
-        GuiItem exitGuiItem = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem exitGuiItem = ItemBuilder.from(ItemGui.exitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
             kitEditGui.close(player);
         });
-        GuiItem glassPaneItemGui = ItemBuilder.from(glassPaneItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem glassPaneItemGui = ItemBuilder.from(ItemGui.glassPaneItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
         });
-        GuiItem deleteKitItemGui = ItemBuilder.from(deleteKitItem).asGuiItem(inventoryClickEvent -> {
+        GuiItem deleteKitItemGui = ItemBuilder.from(ItemGui.deleteKitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
 
 
@@ -302,12 +232,12 @@ public class KitsGui implements CommandExecutor {
                     .rows(1)
                     .create();
 
-            GuiItem confirmItemGui = ItemBuilder.from(confirmItem).asGuiItem(inventoryClickEvent1 -> {
+            GuiItem confirmItemGui = ItemBuilder.from(ItemGui.confirmItem).asGuiItem(inventoryClickEvent1 -> {
                 deleteKit(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), player);
                 mainGui(player);
             });
 
-            GuiItem cancelItemGui = ItemBuilder.from(exitItem).asGuiItem(inventoryClickEvent1 -> {
+            GuiItem cancelItemGui = ItemBuilder.from(ItemGui.exitItem).asGuiItem(inventoryClickEvent1 -> {
                 mainGui(player);
             });
 

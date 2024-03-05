@@ -1,5 +1,6 @@
-package mathano.mathano;
+package mathano.mathano.Utils;
 
+import mathano.mathano.OBGiveAll;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
