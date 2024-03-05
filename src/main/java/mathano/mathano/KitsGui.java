@@ -58,8 +58,6 @@ public class KitsGui implements CommandExecutor {
     private static final ItemStack confirmItem = new ItemStack(Material.PAPER);
     private static final ItemMeta metaConfirmItem = confirmItem.getItemMeta();
 
-    private static int length;
-
     public KitsGui() {
         // Button to create a kit
         metaCreateItem.setDisplayName(ChatColor.GREEN + "Create a kit");
@@ -99,8 +97,6 @@ public class KitsGui implements CommandExecutor {
         metaConfirmItem.setDisplayName(ChatColor.GREEN + "Confirmer");
         metaConfirmItem.setCustomModelData(10064);
         confirmItem.setItemMeta(metaConfirmItem);
-
-        length = 0;
     }
 
     @Override
@@ -195,7 +191,7 @@ public class KitsGui implements CommandExecutor {
         GuiItem saveKitGuiItem = ItemBuilder.from(saveKitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
 
-            length = 0;
+            int length = 0;
             for (int i = 0; i < 36; i++) {
                 if (inventoryClickEvent.getClickedInventory().getItem(i) != null) {
                     length++;
@@ -203,6 +199,7 @@ public class KitsGui implements CommandExecutor {
             }
 
             if (length > 0) {
+                int finalLength = length;
                 new AnvilGUI.Builder()
                         // Either use sync or async variant, not both
                         .onClick((slot, stateSnapshot) -> {
@@ -210,7 +207,7 @@ public class KitsGui implements CommandExecutor {
                                 return Collections.emptyList();
                             }
 
-                            return verifKitNameCreate(stateSnapshot.getText(), inventoryClickEvent.getClickedInventory(), player);
+                            return verifKitName(stateSnapshot.getText(), null, inventoryClickEvent.getClickedInventory(), player, false, finalLength);
                         })
                         // Sets the text the GUI should start with
                         .text("Nom du kit")
@@ -262,7 +259,7 @@ public class KitsGui implements CommandExecutor {
         GuiItem saveKitGuiItem = ItemBuilder.from(saveKitItem).asGuiItem(inventoryClickEvent -> {
             inventoryClickEvent.setCancelled(true);
 
-            length = 0;
+            int length = 0;
             for (int i = 0; i < 36; i++) {
                 if (inventoryClickEvent.getClickedInventory().getItem(i) != null) {
                     length++;
@@ -270,6 +267,7 @@ public class KitsGui implements CommandExecutor {
             }
 
             if (length > 0) {
+                int finalLength = length;
                 new AnvilGUI.Builder()
                         // Either use sync or async variant, not both
                         .onClick((slot, stateSnapshot) -> {
@@ -277,7 +275,7 @@ public class KitsGui implements CommandExecutor {
                                 return Collections.emptyList();
                             }
 
-                            return verifKitNameEdit(stateSnapshot.getText(), name, inventoryClickEvent.getClickedInventory(), player);
+                            return verifKitName(stateSnapshot.getText(), name, inventoryClickEvent.getClickedInventory(), player, true, finalLength);
                         })
                         // Sets the text the GUI should start with
                         .text(name)
@@ -354,13 +352,14 @@ public class KitsGui implements CommandExecutor {
     }
 
     // Save the kit in the cache, handles renaming
-    public static void saveKit(Inventory kit, Player player, String name, String oldName) {
+    public static void saveKit(Inventory kit, Player player, String name, String oldName, int length) {
         // init variables
         ItemStack[] items = new ItemStack[length];
         ItemStack icon;
         ItemMeta iconMeta;
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         int cmp = 0;
+        boolean edit = false;
 
         if (kit.getItem(47) != null) {
             icon = kit.getItem(47);
@@ -374,6 +373,7 @@ public class KitsGui implements CommandExecutor {
 
         if (dataKits.contains(name)) {
             dataKits.set(name, null);
+            edit = true;
         }
 
         if (oldName != null && dataKits.contains(oldName)) {
@@ -395,6 +395,7 @@ public class KitsGui implements CommandExecutor {
             }
 
             OBGiveAll.getInstance().setRewardsConfig(rewards);
+            edit = true;
         }
 
         dataKits.set(name + ".name", icon);
@@ -410,7 +411,11 @@ public class KitsGui implements CommandExecutor {
             dataKits.set(name + "." + i, items[i]);
         }
 
-        player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
+        if (edit) {
+            player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été modifié !");
+        } else {
+            player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
+        }
 
         OBGiveAll.getInstance().setDataKitsConfig(dataKits);
         OBGiveAll.getInstance().saveDataKitsConfig();
@@ -437,39 +442,31 @@ public class KitsGui implements CommandExecutor {
         OBGiveAll.getInstance().setRewardsConfig(rewards);
     }
 
-    public static  List<AnvilGUI.ResponseAction> verifKitNameCreate(String kitName, Inventory clickedInventory, Player player) {
-        if (!kitName.equalsIgnoreCase("")
-                && !kitName.equalsIgnoreCase("Nom du kit")
-                && !OBGiveAll.getInstance().getDataKitsConfig().contains(kitName)
-                && !kitName.contains(" ")) {
-            saveKit(clickedInventory, player, kitName, null);
-            return Arrays.asList(AnvilGUI.ResponseAction.close());
-        } else {
-            if (OBGiveAll.getInstance().getDataKitsConfig().contains(kitName)) {
-                player.sendMessage(ChatColor.RED + "Le kit " + kitName + " existe déjà !");
-            }
-            if (kitName.contains(" ")) {
-                player.sendMessage(ChatColor.RED + "Le kit ne peut pas avoir d'espaces dans son nom !");
-            }
-            return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
-        }
-    }
-
-    public static List<AnvilGUI.ResponseAction> verifKitNameEdit(String newKitName, String name, Inventory clickedInventory, Player player) {
+    public static List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, int length) {
         if (!newKitName.equalsIgnoreCase("")
-                && !newKitName.equalsIgnoreCase("Nom du kit")
-                && !newKitName.contains(" ")){
-            if (OBGiveAll.getInstance().getDataKitsConfig().contains(newKitName) && newKitName.equals(name)) {
-                saveKit(clickedInventory, player, newKitName, OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
-                return Arrays.asList(AnvilGUI.ResponseAction.close());
-            }
-
-            if (!OBGiveAll.getInstance().getDataKitsConfig().contains(newKitName)) {
-                saveKit(clickedInventory, player, newKitName, OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name).getItemStack("name").getItemMeta().getDisplayName());
-                return Arrays.asList(AnvilGUI.ResponseAction.close());
+                && !newKitName.contains(" ")) {
+            FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
+            if (!edit) {
+                if (dataKits.contains(newKitName)) {
+                    player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
+                    return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
+                } else {
+                    saveKit(clickedInventory, player, newKitName, null, length);
+                    return Arrays.asList(AnvilGUI.ResponseAction.close());
+                }
             } else {
-                player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
-                return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
+                if (dataKits.contains(newKitName) && newKitName.equals(oldKitName)) {
+                    saveKit(clickedInventory, player, newKitName, dataKits.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                    return Arrays.asList(AnvilGUI.ResponseAction.close());
+                }
+
+                if (!OBGiveAll.getInstance().getDataKitsConfig().contains(newKitName)) {
+                    saveKit(clickedInventory, player, newKitName, dataKits.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                    return Arrays.asList(AnvilGUI.ResponseAction.close());
+                } else {
+                    player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
+                    return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
+                }
             }
         } else {
             if (newKitName.contains(" ")) {
