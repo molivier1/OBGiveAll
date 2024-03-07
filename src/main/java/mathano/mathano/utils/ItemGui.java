@@ -1,4 +1,4 @@
-package mathano.mathano.Utils;
+package mathano.mathano.utils;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

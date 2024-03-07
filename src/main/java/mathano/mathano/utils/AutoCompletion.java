@@ -1,4 +1,4 @@
-package mathano.mathano.Utils;
+package mathano.mathano.utils;
 
 import mathano.mathano.OBGiveAll;
 import org.bukkit.Server;

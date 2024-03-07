@@ -1,18 +1,16 @@
-package mathano.mathano;
+package mathano.mathano.handlers;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.StorageGui;
-import mathano.mathano.Utils.ItemGui;
+import mathano.mathano.OBGiveAll;
+import mathano.mathano.utils.ItemGui;
 import net.kyori.adventure.text.Component;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -24,25 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class KitsGui implements CommandExecutor {
-    public KitsGui() {
-        new ItemGui();
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
-            return true;
-        }
-
-        Player player = ((Player) sender).getPlayer();
-
-        mainGui(player);
-
-        return true;
-    }
-
+public class KitsGui {
     // Gui that shows every created kits
     public static void mainGui(Player player) {
         // Creation of the main interface
@@ -395,7 +375,7 @@ public class KitsGui implements CommandExecutor {
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 } else {
                     player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
-                    return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
+                    return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText(oldKitName));
                 }
             }
         } else {

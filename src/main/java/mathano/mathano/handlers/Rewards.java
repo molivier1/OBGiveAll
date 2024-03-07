@@ -1,13 +1,11 @@
-package mathano.mathano;
+package mathano.mathano.handlers;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import mathano.mathano.OBGiveAll;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -15,29 +13,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 
-public class Rewards implements CommandExecutor {
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
-            return true;
-        }
-
-        Player player = ((Player) sender).getPlayer();
-
-        FileConfiguration rewardsFile = OBGiveAll.getInstance().getRewardsConfig();
-
-        if(rewardsFile.contains(player.getUniqueId().toString())) {
-            rewardsGui(player);
-        } else {
-            player.sendMessage(ChatColor.RED + "Vous n'avez pas de récompenses en attente");
-        }
-        return true;
-    }
-
+public class Rewards {
     // Gui that displays the available rewards for the player, and they can be redeemed by clicking on the kit's icons.
     // If the player has no available rewards, the Gui won't open and just notify the player that he has no rewards.
-    public void rewardsGui(Player player) {
+    public static void rewardsGui(Player player) {
         Gui rewards = Gui.gui()
                 .title(Component.text("Récompenses"))
                 .rows(6)
@@ -88,7 +67,7 @@ public class Rewards implements CommandExecutor {
 
     // Read through the dataKits config and give every item linked to the specified kit.
     // Decrements by 1 the corresponding kit in the rewards config.
-    public void giveKit(Player player, String kitName) {
+    public static void giveKit(Player player, String kitName) {
         FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         ConfigurationSection kitSection = dataKits.getConfigurationSection(kitName);
 
