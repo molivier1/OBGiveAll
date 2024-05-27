@@ -3,7 +3,6 @@ package mathano.mathano.handlers;
 import mathano.mathano.OBGiveAll;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -35,7 +34,7 @@ public class Give {
                 rewards.set(currentPlayer.getUniqueId() + "." + kitName, numberOfKits);
 
                 currentPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                currentPlayer.sendMessage("/rewards pour récuperer votre récompense.");
+                currentPlayer.sendMessage("/rewards pour récupérer votre récompense.");
             }
 
             admin.sendMessage("Le kit " + kitName + " a été donné à tous les joueurs !");
@@ -59,7 +58,7 @@ public class Give {
                 UUID uuid;
                 Player givenPlayer = server.getPlayer(playerName);
 
-                if (server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) {
+                if (givenPlayer != null && givenPlayer.isOnline()) {
                     uuid = givenPlayer.getUniqueId();
                 } else {
                     uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId();
@@ -76,9 +75,9 @@ public class Give {
 
                 rewards.set(uuid + "." + kitName, numberOfKits);
 
-                if (server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) {
+                if (givenPlayer != null && givenPlayer.isOnline()) {
                     givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                    givenPlayer.sendMessage("/rewards pour récuperer votre récompense.");
+                    givenPlayer.sendMessage("/rewards pour récupérer votre récompense.");
                 }
 
                 OBGiveAll.getInstance().setRewardsConfig(rewards);
