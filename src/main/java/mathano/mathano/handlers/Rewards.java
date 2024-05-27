@@ -89,7 +89,7 @@ public class Rewards {
         }
 
         if(check != 0) {
-            player.sendMessage(ChatColor.RED + "Certains items on été drop au sol !");
+            player.sendMessage(ChatColor.RED + "Certains items ont été drop au sol !");
         }
     }
 }

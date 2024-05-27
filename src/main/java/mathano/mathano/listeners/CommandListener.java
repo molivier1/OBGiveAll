@@ -74,7 +74,7 @@ public class CommandListener implements CommandExecutor {
                 if(rewardsFile.contains(playerRecompense.getUniqueId().toString())) {
                     Rewards.rewardsGui(playerRecompense);
                 } else {
-                    playerRecompense.sendMessage(ChatColor.RED + "Vous n'avez pas de récompenses en attente");
+                    playerRecompense.sendMessage(ChatColor.RED + "Vous n'avez pas de récompenses en attente.");
                 }
                 break;
         }
