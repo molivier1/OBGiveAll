@@ -1,10 +1,14 @@
 package mathano.mathano.handlers;
 
 import mathano.mathano.OBGiveAll;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 
 public class Give {
@@ -46,27 +50,36 @@ public class Give {
     public static void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
         FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
 
-        if(server.getPlayer(playerName).hasPlayedBefore() || server.getPlayer(playerName).isOnline()) {
+        if((server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) || Bukkit.getOfflinePlayer(playerName).hasPlayedBefore()) {
 
             FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 
             if (dataKits.contains(kitName)) {
 
+                UUID uuid;
                 Player givenPlayer = server.getPlayer(playerName);
+
+                if (server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) {
+                    uuid = givenPlayer.getUniqueId();
+                } else {
+                    uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId();
+                }
 
                 int numberOfKits = 1;
 
-                if(rewards.contains(givenPlayer.getUniqueId() + "." + kitName)){
-                    numberOfKits = rewards.getInt(givenPlayer.getUniqueId() + "." + kitName);
+                if(rewards.contains(uuid + "." + kitName)){
+                    numberOfKits = rewards.getInt(uuid + "." + kitName);
                     numberOfKits++;
                 }
 
                 admin.sendMessage("Le kit " + kitName + " a été donné à " + playerName);
 
-                rewards.set(givenPlayer.getUniqueId() + "." + kitName, numberOfKits);
+                rewards.set(uuid + "." + kitName, numberOfKits);
 
-                givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                givenPlayer.sendMessage("/rewards pour récuperer votre récompense.");
+                if (server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) {
+                    givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
+                    givenPlayer.sendMessage("/rewards pour récuperer votre récompense.");
+                }
 
                 OBGiveAll.getInstance().setRewardsConfig(rewards);
             } else {

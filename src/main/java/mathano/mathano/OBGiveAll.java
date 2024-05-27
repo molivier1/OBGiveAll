@@ -112,23 +112,14 @@ public final class OBGiveAll extends JavaPlugin {
     }
 
     public void scheduleSave() {
-        /*Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-                Bukkit.broadcastMessage("Test scheduler changer value !!");
-                saveRewardsConfig();
-            }
-        }, 0L, 18000L); //0 Tick initial delay, 20 Tick (1 Second) between repeats in our case 18k ticks = 15 minutes
-    */
         ScheduledExecutorService executors = Executors.newScheduledThreadPool(1);
 
         executors.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                    Bukkit.broadcastMessage("Test scheduler changer value !!");
+                    System.out.println("Sauvegarde OBGiveall");
                     saveRewardsConfig();
             }
         }, 0, 15, TimeUnit.MINUTES);
-        //executors.shutdown();
     }
 }

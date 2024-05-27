@@ -36,10 +36,9 @@ public class Rewards {
                 GuiItem kitItem = ItemBuilder.from(icon).asGuiItem(inventoryClickEvent -> {
                     rewards.close(player);
 
-                    player.sendMessage(ChatColor.GREEN + "Vous avez obtenu la récompense " + key);
-
                     // donne item + decremente/delete du file en CACHE
                     int numberOfKits = userSection.getInt(key);
+                    int initialNumber = numberOfKits;
                     numberOfKits--;
 
                     if(numberOfKits <= 0)
@@ -55,8 +54,10 @@ public class Rewards {
                     }
 
                     OBGiveAll.getInstance().setRewardsConfig(rewardsFile);
-
-                    giveKit(player, key);
+                    if (initialNumber > 0) {
+                        player.sendMessage(ChatColor.GREEN + "Vous avez obtenu la récompense " + key);
+                        giveKit(player, key);
+                    }
                 });
                 rewards.addItem(kitItem);
             }
