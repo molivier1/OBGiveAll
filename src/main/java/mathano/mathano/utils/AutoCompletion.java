@@ -1,6 +1,7 @@
 package mathano.mathano.utils;
 
 import mathano.mathano.OBGiveAll;
+import mathano.mathano.managers.DataKitsManager;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,6 +17,10 @@ public class AutoCompletion implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> result = new ArrayList<String>();
 
+        /*if (!((Player) sender).getPlayer().hasPermission("obgiveall.giveall")) {
+            return result;
+        }*/
+
         switch (command.getName()) {
             case "obgiveall":
                 arguments.clear();
@@ -29,7 +34,7 @@ public class AutoCompletion implements TabCompleter {
                 }
 
                 if (args.length == 2) {
-                    arguments.addAll(OBGiveAll.getInstance().getDataKitsConfig().getKeys(false));
+                    arguments.addAll(DataKitsManager.DATA_KITS_CONFIG.getKeys(false));
                 }
 
                 result = sendResult(args);

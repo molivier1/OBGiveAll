@@ -4,6 +4,8 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import mathano.mathano.OBGiveAll;
+import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.RewardsManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -23,13 +25,11 @@ public class Rewards {
                 .disableAllInteractions()
                 .create();
 
-        FileConfiguration rewardsFile = OBGiveAll.getInstance().getRewardsConfig();
-        ConfigurationSection userSection = rewardsFile.getConfigurationSection(player.getUniqueId().toString());
-        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
+        ConfigurationSection userSection = RewardsManager.REWARDS_CONFIG.getConfigurationSection(player.getUniqueId().toString());
         for (String key : userSection.getKeys(false)) {
             int amount = userSection.getInt(key);
             for (int i =0; i<amount; i++) {
-                ItemStack icon = dataKits.getItemStack(key + ".name");
+                ItemStack icon = DataKitsManager.DATA_KITS_CONFIG.getItemStack(key + ".name");
                 ItemMeta meta = icon.getItemMeta();
                 meta.setDisplayName(key);
                 icon.setItemMeta(meta);
@@ -50,10 +50,9 @@ public class Rewards {
                     }
 
                     if (userSection.getKeys(false).size() <= 0) {
-                        rewardsFile.set(player.getUniqueId().toString(), null);
+                        RewardsManager.REWARDS_CONFIG.set(player.getUniqueId().toString(), null);
                     }
 
-                    OBGiveAll.getInstance().setRewardsConfig(rewardsFile);
                     if (initialNumber > 0) {
                         player.sendMessage(ChatColor.GREEN + "Vous avez obtenu la récompense " + key);
                         giveKit(player, key);
@@ -69,8 +68,7 @@ public class Rewards {
     // Read through the dataKits config and give every item linked to the specified kit.
     // Decrements by 1 the corresponding kit in the rewards config.
     public static void giveKit(Player player, String kitName) {
-        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
-        ConfigurationSection kitSection = dataKits.getConfigurationSection(kitName);
+        ConfigurationSection kitSection = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(kitName);
 
         int numberOfKeys = kitSection.getKeys(false).size() - 1;
         int check = 0;

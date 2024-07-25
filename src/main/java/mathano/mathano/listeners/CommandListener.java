@@ -1,9 +1,10 @@
 package mathano.mathano.listeners;
 
 import mathano.mathano.handlers.KitsGui;
-import mathano.mathano.OBGiveAll;
 import mathano.mathano.handlers.Give;
 import mathano.mathano.handlers.Rewards;
+import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
@@ -42,7 +43,7 @@ public class CommandListener implements CommandExecutor {
                     return true;
                 }
 
-                FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
+                FileConfiguration dataKits = DataKitsManager.DATA_KITS_CONFIG;
 
                 if (!dataKits.contains(args[1])) {
                     playerGive.sendMessage(ChatColor.RED + "Le kit " + args[1] + " n'existe pas !");
@@ -65,7 +66,7 @@ public class CommandListener implements CommandExecutor {
                     return true;
                 }
 
-                FileConfiguration rewardsFile = OBGiveAll.getInstance().getRewardsConfig();
+                FileConfiguration rewardsFile = RewardsManager.REWARDS_CONFIG;
 
                 Player playerRecompense = ((Player) sender).getPlayer();
 

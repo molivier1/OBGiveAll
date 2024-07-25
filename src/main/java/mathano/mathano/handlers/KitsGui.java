@@ -6,6 +6,8 @@ import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.StorageGui;
 import mathano.mathano.OBGiveAll;
+import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import net.kyori.adventure.text.Component;
 import net.wesjd.anvilgui.AnvilGUI;
@@ -62,14 +64,13 @@ public class KitsGui {
         mainGui.setItem(6, 8, glassPaneItemGui);
         mainGui.setItem(6, 9, exitGuiItem);
 
-        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
 
         ItemStack icon;
         ItemMeta iconMeta;
 
-        for (String key : dataKits.getKeys(false)) {
+        for (String key : DataKitsManager.DATA_KITS_CONFIG.getKeys(false)) {
             //We are getting every key from our config.yml file
-            ConfigurationSection section = dataKits.getConfigurationSection(key);
+            ConfigurationSection section = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(key);
             if (section.getItemStack("name") != null) {
                 icon = new ItemStack(section.getItemStack("name"));
                 iconMeta = icon.getItemMeta();
@@ -124,7 +125,7 @@ public class KitsGui {
                         // Set the title of the GUI (only works in 1.14+)
                         .title("Nom du kit")
                         // Set the plugin instance
-                        .plugin(OBGiveAll.getInstance())
+                        .plugin(OBGiveAll.INSTANCE)
                         .open(player);
             }
         });
@@ -192,7 +193,7 @@ public class KitsGui {
                         // Set the title of the GUI (only works in 1.14+)
                         .title("Nom du kit")
                         // Set the plugin instance
-                        .plugin(OBGiveAll.getInstance())
+                        .plugin(OBGiveAll.INSTANCE)
                         .open(player);
             }
         });
@@ -242,7 +243,7 @@ public class KitsGui {
         kitEditGui.setItem(6, 9, exitGuiItem);
 
 
-        ConfigurationSection section = OBGiveAll.getInstance().getDataKitsConfig().getConfigurationSection(name);
+        ConfigurationSection section = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(name);
 
         int cmp = section.getKeys(false).size() - 1;
 
@@ -267,7 +268,6 @@ public class KitsGui {
         ItemStack[] items = new ItemStack[length];
         ItemStack icon;
         ItemMeta iconMeta;
-        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
         int cmp = 0;
         boolean edit = false;
 
@@ -281,17 +281,16 @@ public class KitsGui {
         iconMeta.setDisplayName(name);
         icon.setItemMeta(iconMeta);
 
-        if (dataKits.contains(name)) {
-            dataKits.set(name, null);
+        if (DataKitsManager.DATA_KITS_CONFIG.contains(name)) {
+            DataKitsManager.DATA_KITS_CONFIG.set(name, null);
             edit = true;
         }
 
-        if (oldName != null && dataKits.contains(oldName)) {
-            dataKits.set(oldName, null);
+        if (oldName != null && DataKitsManager.DATA_KITS_CONFIG.contains(oldName)) {
+            DataKitsManager.DATA_KITS_CONFIG.set(oldName, null);
 
-            FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
-            for (String key : rewards.getKeys(false)) {
-                ConfigurationSection section = rewards.getConfigurationSection(key);
+            for (String key : RewardsManager.REWARDS_CONFIG.getKeys(false)) {
+                ConfigurationSection section = RewardsManager.REWARDS_CONFIG.getConfigurationSection(key);
 
                 if (section.contains(oldName)) {
                     int numberKits = section.getInt(oldName);
@@ -299,16 +298,15 @@ public class KitsGui {
 
                     section.set(oldName, null);
                     if (section.getKeys(false).size() <= 0) {
-                        rewards.set(player.getUniqueId().toString(), null);
+                        RewardsManager.REWARDS_CONFIG.set(player.getUniqueId().toString(), null);
                     }
                 }
             }
 
-            OBGiveAll.getInstance().setRewardsConfig(rewards);
             edit = true;
         }
 
-        dataKits.set(name + ".name", icon);
+        DataKitsManager.DATA_KITS_CONFIG.set(name + ".name", icon);
 
         for (int i = 0; i < 36; i++) {
             if (kit.getItem(i) != null) {
@@ -318,7 +316,7 @@ public class KitsGui {
         }
 
         for (int i = 0; i < cmp; i++) {
-            dataKits.set(name + "." + i, items[i]);
+            DataKitsManager.DATA_KITS_CONFIG.set(name + "." + i, items[i]);
         }
 
         if (edit) {
@@ -327,37 +325,31 @@ public class KitsGui {
             player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
         }
 
-        OBGiveAll.getInstance().setDataKitsConfig(dataKits);
-        OBGiveAll.getInstance().saveDataKitsConfig();
+        DataKitsManager.INSTANCE.saveDataKitsConfig();
     }
 
     // Deletes the selected kit from the DataKits and Rewards cache
     public static void deleteKit(String name, Player player) {
-        FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
-        dataKits.set(name, null);
+        DataKitsManager.DATA_KITS_CONFIG.set(name, null);
         player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été supprimé !");
 
-        FileConfiguration rewards = OBGiveAll.getInstance().getRewardsConfig();
-        for (String key : rewards.getKeys(false)) {
-            ConfigurationSection section = rewards.getConfigurationSection(key);
+        for (String key : RewardsManager.REWARDS_CONFIG.getKeys(false)) {
+            ConfigurationSection section = RewardsManager.REWARDS_CONFIG.getConfigurationSection(key);
 
             if (section.contains(name)) {
                 section.set(name, null);
                 if (section.getKeys(false).size() <= 0) {
-                    rewards.set(player.getUniqueId().toString(), null);
+                    RewardsManager.REWARDS_CONFIG.set(player.getUniqueId().toString(), null);
                 }
             }
         }
-
-        OBGiveAll.getInstance().setRewardsConfig(rewards);
     }
 
     public static List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, int length) {
         if (!newKitName.equalsIgnoreCase("")
                 && !newKitName.contains(" ")) {
-            FileConfiguration dataKits = OBGiveAll.getInstance().getDataKitsConfig();
             if (!edit) {
-                if (dataKits.contains(newKitName)) {
+                if (DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)) {
                     player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
                     return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                 } else {
@@ -365,13 +357,13 @@ public class KitsGui {
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
             } else {
-                if (dataKits.contains(newKitName) && newKitName.equals(oldKitName)) {
-                    saveKit(clickedInventory, player, newKitName, dataKits.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                if (DataKitsManager.DATA_KITS_CONFIG.contains(newKitName) && newKitName.equals(oldKitName)) {
+                    saveKit(clickedInventory, player, newKitName, DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
 
-                if (!OBGiveAll.getInstance().getDataKitsConfig().contains(newKitName)) {
-                    saveKit(clickedInventory, player, newKitName, dataKits.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                if (!DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)) {
+                    saveKit(clickedInventory, player, newKitName, DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 } else {
                     player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
