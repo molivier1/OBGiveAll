@@ -11,17 +11,17 @@ public class DataKitsManager {
 
     public static FileConfiguration DATA_KITS_CONFIG;
 
-    private File dataKitsConfigFile;
+    private final File dataKitsConfigFile;
 
     public DataKitsManager() {
         INSTANCE = this;
 
         // Caching of the yml file
         dataKitsConfigFile = new File(OBGiveAll.INSTANCE.getDataFolder(), "dataKits.yml");
-        reloadDataKitsConfig();
+        reload();
     }
 
-    public void reloadDataKitsConfig() {
+    public void reload() {
         if (!dataKitsConfigFile.exists()) {
             OBGiveAll.INSTANCE.saveResource("dataKits.yml", false);
         }
@@ -29,7 +29,7 @@ public class DataKitsManager {
     }
 
     // Saves cached dataKits into dataKits.yml
-    public void saveDataKitsConfig () {
+    public void save() {
         try {
             DATA_KITS_CONFIG.save("./plugins/OBGiveAll/dataKits.yml");
         } catch (IOException e) {

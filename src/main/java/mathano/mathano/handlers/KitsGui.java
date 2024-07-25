@@ -6,15 +6,16 @@ import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.StorageGui;
 import mathano.mathano.OBGiveAll;
+import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
+import mathano.mathano.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -25,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class KitsGui {
+    private static String section = "kitsGui";
+
     // Gui that shows every created kits
     public static void mainGui(Player player) {
         // Creation of the main interface
@@ -320,12 +323,15 @@ public class KitsGui {
         }
 
         if (edit) {
-            player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été modifié !");
+            // Message sent whenever a kit was successfully modified
+            player.sendMessage(Utils.getText(section, "kitModified", Placeholders.KIT_NAME.set(name)));
+
         } else {
-            player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été créé !");
+            // Message sent whenever a kit was successfully created
+            player.sendMessage(Utils.getText(section, "kitCreated", Placeholders.KIT_NAME.set(name)));
         }
 
-        DataKitsManager.INSTANCE.saveDataKitsConfig();
+        DataKitsManager.INSTANCE.save();
     }
 
     // Deletes the selected kit from the DataKits and Rewards cache
@@ -350,7 +356,8 @@ public class KitsGui {
                 && !newKitName.contains(" ")) {
             if (!edit) {
                 if (DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)) {
-                    player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
+                    // Message sent when the saved kit already exists
+                    player.sendMessage(Utils.getText(section, "alreadyExists", Placeholders.KIT_NAME.set(newKitName)));
                     return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                 } else {
                     saveKit(clickedInventory, player, newKitName, null, length);
@@ -372,7 +379,8 @@ public class KitsGui {
             }
         } else {
             if (newKitName.contains(" ")) {
-                player.sendMessage(ChatColor.RED + "Le kit ne peut pas avoir d'espaces dans son nom !");
+                // Message sent when a space was put in the kit name
+                player.sendMessage(Utils.getText(section, "spaceInName"));
             }
             return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
         }

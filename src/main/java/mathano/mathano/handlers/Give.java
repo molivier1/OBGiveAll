@@ -1,20 +1,27 @@
 package mathano.mathano.handlers;
 
-import mathano.mathano.OBGiveAll;
+import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
 import mathano.mathano.managers.RewardsManager;
+import mathano.mathano.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Server;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 
 public class Give {
+    public static Give INSTANCE;
+
+    private final String section = "give";
+
+    public Give() {
+        INSTANCE = this;
+    }
+
     // Adds specified kit in the rewards config to every connected players
-    public static void toEveryone(Player admin, String kitName, Server server) {
+    public void toEveryone(Player admin, String kitName, Server server) {
         if (DataKitsManager.DATA_KITS_CONFIG.contains(kitName)) {
             int playersOnline = server.getOnlinePlayers().size();
             Player[] listPlayer = server.getOnlinePlayers().toArray(new Player[playersOnline]);
@@ -32,18 +39,18 @@ public class Give {
 
                 RewardsManager.REWARDS_CONFIG.set(currentPlayer.getUniqueId() + "." + kitName, numberOfKits);
 
-                currentPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                currentPlayer.sendMessage("/rewards pour récupérer votre récompense.");
+                currentPlayer.sendMessage(Utils.getText(section, "kitReceived", Placeholders.KIT_NAME.set(kitName)));
+                currentPlayer.sendMessage((Utils.getText(section, "rewardsMessage")));
             }
 
-            admin.sendMessage("Le kit " + kitName + " a été donné à tous les joueurs !");
+            admin.sendMessage(Utils.getText(section, "givenToEveryone", Placeholders.KIT_NAME.set(kitName)));
         } else {
-            admin.sendMessage(ChatColor.RED + "Le kit " + kitName + " n'existe pas !");
+            admin.sendMessage(Utils.getText(section, "invalidKit", Placeholders.KIT_NAME.set(kitName)));
         }
     }
 
     // Adds specified kit in the rewards config to a player that already played on the server
-    public static void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
+    public void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
         if((server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) || Bukkit.getOfflinePlayer(playerName).hasPlayedBefore()) {
             if (DataKitsManager.DATA_KITS_CONFIG.contains(kitName)) {
 
@@ -63,19 +70,22 @@ public class Give {
                     numberOfKits++;
                 }
 
-                admin.sendMessage("Le kit " + kitName + " a été donné à " + playerName);
+                admin.sendMessage(Utils.getText(section, "givenToSpecific", Placeholders.KIT_NAME.set(kitName), Placeholders.PLAYER_NAME.set(playerName)));
 
                 RewardsManager.REWARDS_CONFIG.set(uuid + "." + kitName, numberOfKits);
 
                 if (givenPlayer != null && givenPlayer.isOnline()) {
-                    givenPlayer.sendMessage(ChatColor.GREEN + "Vous avez reçu le kit " + kitName + " !");
-                    givenPlayer.sendMessage("/rewards pour récupérer votre récompense.");
+                    givenPlayer.sendMessage(Utils.getText(section, "kitReceived", Placeholders.KIT_NAME.set(kitName)));
+
+                    givenPlayer.sendMessage((Utils.getText(section, "rewardsMessage")));
                 }
             } else {
-                admin.sendMessage(ChatColor.RED + "Le kit " + kitName + " n'existe pas !");
+                admin.sendMessage(Utils.getText(section, "invalidKit", Placeholders.KIT_NAME.set(kitName)));
             }
         } else {
-            admin.sendMessage(ChatColor.RED + "Le joueur " + playerName + " n'a jamais joué sur ce serveur !");
+            // Player never joined the server
+            admin.sendMessage(Utils.getText(section, "playerUnfounded", Placeholders.KIT_NAME.set(kitName)));
         }
     }
+
 }

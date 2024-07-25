@@ -3,19 +3,21 @@ package mathano.mathano.handlers;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
-import mathano.mathano.OBGiveAll;
+import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
 import mathano.mathano.managers.RewardsManager;
+import mathano.mathano.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 
 public class Rewards {
+    private static final String section = "rewards";
+
     // Gui that displays the available rewards for the player, and they can be redeemed by clicking on the kit's icons.
     // If the player has no available rewards, the Gui won't open and just notify the player that he has no rewards.
     public static void rewardsGui(Player player) {
@@ -54,7 +56,8 @@ public class Rewards {
                     }
 
                     if (initialNumber > 0) {
-                        player.sendMessage(ChatColor.GREEN + "Vous avez obtenu la récompense " + key);
+                        // Message sent when a kit is claimed
+                        player.sendMessage(Utils.getText(section, "kitClaimed", Placeholders.KIT_NAME.set(key)));
                         giveKit(player, key);
                     }
                 });
@@ -87,7 +90,8 @@ public class Rewards {
         }
 
         if(check != 0) {
-            player.sendMessage(ChatColor.RED + "Certains items ont été drop au sol !");
+            // Message sent whenever item dropped caused by a full inventory
+            player.sendMessage(Utils.getText(section, "itemsDropped"));
         }
     }
 }

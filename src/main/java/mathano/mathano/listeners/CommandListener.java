@@ -53,10 +53,10 @@ public class CommandListener implements CommandExecutor {
                 Server server = sender.getServer();
                 if (args[0].equals("*")) {
                     // Gives to everyone
-                    Give.toEveryone(playerGive, args[1], server);
+                    Give.INSTANCE.toEveryone(playerGive, args[1], server);
                 } else {
                     // Gives to specific player
-                    Give.toSpecificPlayer(playerGive, args[1], server, args[0]);
+                    Give.INSTANCE.toSpecificPlayer(playerGive, args[1], server, args[0]);
                 }
                 break;
 
