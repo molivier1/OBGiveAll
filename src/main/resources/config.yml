@@ -13,6 +13,7 @@ give:
 rewards:
   kitClaimed: "Vous avez obtenu la récompense %kitName%"
   itemsDropped: "&4Certains items ont été drop au sol !"
+  noRewards: "&4Vous n'avez pas de récompenses en attente."
 
 # kitsGui is for the text to the kitsGui command
 kitsGui:
@@ -26,3 +27,8 @@ schedule:
   initialDelay: 0
   time: 15
   saveMessage: "Sauvegarde OBGiveall"
+
+technic:
+  reload: "&2Config OBGiveAll chargées."
+  console: "&4La console ne peut pas utiliser cette commande."
+  badUsage: "&4Mauvais usage de la commande."

@@ -1,17 +1,18 @@
 package mathano.mathano.listeners;
 
+import mathano.mathano.enums.Placeholders;
 import mathano.mathano.handlers.KitsGui;
 import mathano.mathano.handlers.Give;
 import mathano.mathano.handlers.Rewards;
+import mathano.mathano.managers.ConfigManager;
 import mathano.mathano.managers.DataKitsManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
-import org.bukkit.ChatColor;
+import mathano.mathano.utils.Utils;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 public class CommandListener implements CommandExecutor {
@@ -20,35 +21,34 @@ public class CommandListener implements CommandExecutor {
         switch (command.getName()) {
             case "kitsgui":
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
+                    // Message sent when console cannot use said command
+                    sender.sendMessage(Utils.getText("technic", "console"));
                     return true;
                 }
 
-                Player playerKits = ((Player) sender).getPlayer();
-
                 new ItemGui();
 
-                KitsGui.mainGui(playerKits);
+                KitsGui.mainGui(((Player) sender).getPlayer());
                 break;
             case "obgiveall":
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
+                    sender.sendMessage(Utils.getText("technic", "console"));
+                    return true;
+                }
+
+                if (args.length <= 1) {
+                    // Message sent when the admin made a mistake in the command
+                    sender.sendMessage(Utils.getText("technic", "badUsage"));
+                    return true;
+                }
+
+                if (!DataKitsManager.DATA_KITS_CONFIG.contains(args[1])) {
+                    // Message sent when the kit doesn't exist
+                    sender.sendMessage(Utils.getText("give", "invalidKit", Placeholders.KIT_NAME.set(args[1])));
                     return true;
                 }
 
                 Player playerGive = ((Player) sender).getPlayer();
-
-                if (args.length <= 1) {
-                    playerGive.sendMessage(ChatColor.RED + "Mauvais usage de la commande.");
-                    return true;
-                }
-
-                FileConfiguration dataKits = DataKitsManager.DATA_KITS_CONFIG;
-
-                if (!dataKits.contains(args[1])) {
-                    playerGive.sendMessage(ChatColor.RED + "Le kit " + args[1] + " n'existe pas !");
-                    return true;
-                }
 
                 Server server = sender.getServer();
                 if (args[0].equals("*")) {
@@ -62,21 +62,27 @@ public class CommandListener implements CommandExecutor {
 
             case "recompense":
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(ChatColor.RED + "La console ne peut pas utiliser cette commande.");
+                    sender.sendMessage(Utils.getText("technic", "console"));
                     return true;
                 }
-
-                FileConfiguration rewardsFile = RewardsManager.REWARDS_CONFIG;
 
                 Player playerRecompense = ((Player) sender).getPlayer();
 
                 new ItemGui();
 
-                if(rewardsFile.contains(playerRecompense.getUniqueId().toString())) {
+                if(RewardsManager.REWARDS_CONFIG.contains(playerRecompense.getUniqueId().toString())) {
                     Rewards.rewardsGui(playerRecompense);
                 } else {
-                    playerRecompense.sendMessage(ChatColor.RED + "Vous n'avez pas de récompenses en attente.");
+                    playerRecompense.sendMessage(Utils.getText("rewards", "noRewards"));
                 }
+                break;
+
+            case "obreload":
+                ConfigManager.INSTANCE.reload();
+
+                // Message sent when the config is reloaded
+                sender.sendMessage(Utils.getText("technic", "reload"));
+
                 break;
         }
         return true;
