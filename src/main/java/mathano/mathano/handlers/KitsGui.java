@@ -1,13 +1,18 @@
 package mathano.mathano.handlers;
 
+import com.google.gson.Gson;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.StorageGui;
 import mathano.mathano.OBGiveAll;
+import mathano.mathano.database.jsondata.DataKitsJson;
+import mathano.mathano.database.jsondata.ItemMetaJson;
+import mathano.mathano.database.jsondata.ItemStackJson;
 import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.JsonManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import mathano.mathano.utils.Utils;
@@ -16,20 +21,31 @@ import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 public class KitsGui {
     private static String section = "kitsGui";
+    public static KitsGui INSTANCE;
+
+    public KitsGui() {
+        INSTANCE = this;
+    }
 
     // Gui that shows every created kits
-    public static void mainGui(Player player) {
+    public void mainGui(Player player) {
         // Creation of the main interface
         PaginatedGui mainGui = Gui.paginated()
                 .title(Component.text("MainGUI"))
@@ -90,7 +106,7 @@ public class KitsGui {
     }
 
     // Gui that permits the creation of the kits
-    public static void kitCreationGUI(Player player) {
+    public void kitCreationGUI(Player player) {
         // Creation of the kit creation interface
         Gui kitCreationGui = Gui.gui()
                 .title(Component.text("KitCreationGUI"))
@@ -159,7 +175,7 @@ public class KitsGui {
     }
 
     // This Gui shows the Items in the selected kit and permits to edit them
-    public static void kitEditGUI(Player player, String name) {
+    public void kitEditGUI(Player player, String name) {
         StorageGui kitEditGui = Gui.storage()
                 .title(Component.text("KitEditGUI"))
                 .rows(6)
@@ -351,7 +367,7 @@ public class KitsGui {
         }
     }
 
-    public static List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, int length) {
+    public List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, int length) {
         if (!newKitName.equalsIgnoreCase("")
                 && !newKitName.contains(" ")) {
             if (!edit) {
@@ -360,7 +376,8 @@ public class KitsGui {
                     player.sendMessage(Utils.getText(section, "alreadyExists", Placeholders.KIT_NAME.set(newKitName)));
                     return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                 } else {
-                    saveKit(clickedInventory, player, newKitName, null, length);
+                    //saveKit(clickedInventory, player, newKitName, null, length);
+                    saveKit2(clickedInventory, player, newKitName, null);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
             } else {
@@ -384,5 +401,168 @@ public class KitsGui {
             }
             return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
         }
+    }
+
+    /*private void saveKit2(Inventory kit, Player player, String name, String oldName) {
+        ItemStack icon = kit.getItem(47);
+        ItemStackJson iconJson = new ItemStackJson();
+
+        if (icon == null) {
+            icon = new ItemStack(Material.CHEST);
+        }
+        ItemMeta iconMeta = icon.getItemMeta();
+        iconMeta.setDisplayName(name);
+
+        icon.setItemMeta(iconMeta);
+
+        iconJson.setMaterial(icon.getType());
+        iconJson.setAmount(icon.getAmount());
+        //iconJson.setMeta(createItemMetaJson(icon));
+        iconJson.setMeta(icon.getItemMeta());
+
+        List<ItemStackJson> itemStackJsonList = new ArrayList<>();
+
+        getKitContent(kit).forEach(itemStack -> {
+            ItemStackJson item = new ItemStackJson();
+            //item.setMeta(createItemMetaJson(itemStack));
+            item.setMeta(itemStack.getItemMeta());
+            item.setMaterial(itemStack.getType());
+            item.setAmount(itemStack.getAmount());
+            itemStackJsonList.add(item);
+        });
+
+        DataKitsJson dataKitsJson = new DataKitsJson();
+        dataKitsJson.setIcon(iconJson);
+        dataKitsJson.setItems(itemStackJsonList);
+        dataKitsJson.setName(name);
+
+        OBGiveAll.INSTANCE.getLogger().info(JsonManager.INSTANCE.createJsonKit(dataKitsJson));
+    }*/
+
+    private List<ItemStack> getKitContent(Inventory kit) {
+        List<ItemStack> items = new ArrayList<>();
+        ItemStack item;
+
+        for (int i = 0; i < 36; i++) {
+            item = kit.getItem(i);
+            if(item == null)continue;
+
+            items.add(item);
+        }
+        return items;
+    }
+
+    private ItemMetaJson createItemMetaJson(ItemStack item) {
+        ItemMeta itemMeta = item.getItemMeta();
+        ItemMetaJson itemMetaJson = new ItemMetaJson();
+
+        if (itemMeta.getItemFlags().isEmpty()) {
+            itemMetaJson.setItemFlag(itemMeta.getItemFlags());
+        }
+
+        if (itemMeta.hasLore()) {
+            itemMetaJson.setLore(itemMeta.getLore());
+        }
+        if(itemMeta.hasEnchants()) {
+            itemMetaJson.setEnchantments(itemMeta.getEnchants());
+        }
+
+        if (itemMeta.hasDisplayName()) {
+            itemMetaJson.setDisplayName(itemMeta.getDisplayName());
+        }
+
+        if (itemMeta.hasCustomModelData()) {
+            itemMetaJson.setCustomModelData(itemMeta.getCustomModelData());
+        }
+
+        if (!itemMeta.getPersistentDataContainer().isEmpty()) {
+            itemMetaJson.setPersistentDataContainer(itemMeta.getPersistentDataContainer());
+        }
+
+        return itemMetaJson;
+    }
+
+    private void saveKit2(Inventory kit, Player player, String name, String oldName) {
+        ItemStack icon = kit.getItem(47);
+        //ItemStackJson iconJson = new ItemStackJson();
+        Gson gson = new Gson();
+        String iconJson;
+
+        if (icon == null) {
+            icon = new ItemStack(Material.CHEST);
+        }
+        ItemMeta iconMeta = icon.getItemMeta();
+        iconMeta.setDisplayName(name);
+
+        icon.setItemMeta(iconMeta);
+
+        //iconJson.setItemStack(icon);
+        iconJson = serializeAndEncodeItemStack(icon);
+
+        //List<ItemStackJson> itemStackJsonList = new ArrayList<>();
+        List<String> itemStackJsonList = new ArrayList<>();
+
+        getKitContent(kit).forEach(itemStack -> {
+            //ItemStackJson item = new ItemStackJson();
+            //item.setItemStack(itemStack);
+            //itemStackJsonList.add(item);
+            itemStackJsonList.add(serializeAndEncodeItemStack(itemStack));
+        });
+
+        DataKitsJson dataKitsJson = new DataKitsJson();
+        dataKitsJson.setIcon(iconJson);
+        dataKitsJson.setItems(itemStackJsonList);
+        dataKitsJson.setName(name);
+
+        OBGiveAll.INSTANCE.getLogger().info(JsonManager.INSTANCE.createJsonKit(dataKitsJson));
+
+        OBGiveAll.INSTANCE.getLogger().info("");
+
+        try {
+            OBGiveAll.INSTANCE.getLogger().info(deserialize(JsonManager.INSTANCE.reader.readValue(JsonManager.INSTANCE.createJsonKit(dataKitsJson), DataKitsJson.class).getIcon()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            player.getInventory().addItem(deserializeAndDecodeItemStack(JsonManager.INSTANCE.reader.readValue(JsonManager.INSTANCE.createJsonKit(dataKitsJson), DataKitsJson.class).getIcon()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String serializeAndEncodeItemStack(ItemStack item){
+        try{
+            //Serialize the item(turn it into byte stream)
+            ByteArrayOutputStream io = new ByteArrayOutputStream();
+            BukkitObjectOutputStream os = new BukkitObjectOutputStream(io);
+            os.writeObject(item);
+            os.flush();
+
+            byte[] serializedObject = io.toByteArray();
+            return new String(Base64.getEncoder().encode(serializedObject));
+        }catch (IOException ex){
+            System.out.println(ex);
+        }
+        return "";
+    }
+
+
+    public ItemStack deserializeAndDecodeItemStack(String encodedObject){
+        try{
+            byte[] serializedObject = Base64.getDecoder().decode(encodedObject);
+            ByteArrayInputStream in = new ByteArrayInputStream(serializedObject);
+            BukkitObjectInputStream is = new BukkitObjectInputStream(in);
+
+            return (ItemStack) is.readObject();
+        }catch (IOException | ClassNotFoundException ex){
+            System.out.println(ex);
+        }
+        return null;
+    }
+
+    public String deserialize(String encodedObject){
+        byte[] serializedObject = Base64.getDecoder().decode(encodedObject);
+        return Arrays.toString(serializedObject);
     }
 }

@@ -1,10 +1,9 @@
 package mathano.mathano;
 
 import mathano.mathano.handlers.Give;
+import mathano.mathano.handlers.KitsGui;
 import mathano.mathano.listeners.CommandListener;
-import mathano.mathano.managers.ConfigManager;
-import mathano.mathano.managers.DataKitsManager;
-import mathano.mathano.managers.RewardsManager;
+import mathano.mathano.managers.*;
 import mathano.mathano.utils.AutoCompletion;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,6 +14,9 @@ public final class OBGiveAll extends JavaPlugin {
     private DataKitsManager dataKitsManager;
     private RewardsManager rewardsManager;
     private Give give;
+    private DatabaseManager databaseManager;
+    private KitsGui kitsGui;
+    private JsonManager jsonManager;
 
     @Override
     public void onEnable() {
@@ -27,6 +29,12 @@ public final class OBGiveAll extends JavaPlugin {
 
         give = new Give();
 
+        databaseManager = new DatabaseManager();
+
+        kitsGui = new KitsGui();
+
+        jsonManager = new JsonManager();
+
         initCommands();
     }
 
@@ -35,6 +43,7 @@ public final class OBGiveAll extends JavaPlugin {
         // Plugin shutdown logic
         rewardsManager.save();
         dataKitsManager.save();
+        databaseManager.close();
     }
 
     private void initCommands () {

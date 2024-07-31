@@ -28,13 +28,13 @@ public class CommandListener implements CommandExecutor {
 
                 new ItemGui();
 
-                KitsGui.mainGui(((Player) sender).getPlayer());
+                KitsGui.INSTANCE.mainGui(((Player) sender).getPlayer());
                 break;
             case "obgiveall":
-                if (!(sender instanceof Player)) {
+                /*if (!(sender instanceof Player)) {
                     sender.sendMessage(Utils.getText("technic", "console"));
                     return true;
-                }
+                }*/
 
                 if (args.length <= 1) {
                     // Message sent when the admin made a mistake in the command

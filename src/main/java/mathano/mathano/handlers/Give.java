@@ -27,6 +27,11 @@ public class Give {
             Player[] listPlayer = server.getOnlinePlayers().toArray(new Player[playersOnline]);
             Player currentPlayer;
 
+            if (playersOnline <= 0) {
+                admin.sendMessage(Utils.getText(section, "noPlayerOnline"));
+                return;
+            }
+
             for (int i = 0; i < playersOnline; i++) {
                 currentPlayer = listPlayer[i];
 

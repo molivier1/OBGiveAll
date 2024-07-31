@@ -7,6 +7,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -54,4 +56,8 @@ public class RewardsManager {
             save();
         }, scheduleSection.getInt("initialDelay"), scheduleSection.getInt("time"), TimeUnit.MINUTES);
     }
+
+
+
+    public static HashMap<UUID, HashMap<String, Integer>> PLAYERS_REWARD_CACHE = new HashMap<>();
 }

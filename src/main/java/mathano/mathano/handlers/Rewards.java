@@ -3,12 +3,13 @@ package mathano.mathano.handlers;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import dev.triumphteam.gui.guis.PaginatedGui;
 import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
 import mathano.mathano.managers.RewardsManager;
+import mathano.mathano.utils.ItemGui;
 import mathano.mathano.utils.Utils;
 import net.kyori.adventure.text.Component;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -21,11 +22,36 @@ public class Rewards {
     // Gui that displays the available rewards for the player, and they can be redeemed by clicking on the kit's icons.
     // If the player has no available rewards, the Gui won't open and just notify the player that he has no rewards.
     public static void rewardsGui(Player player) {
-        Gui rewards = Gui.gui()
+        PaginatedGui rewards = Gui.paginated()
                 .title(Component.text("Récompenses"))
                 .rows(6)
+                .pageSize(36)
                 .disableAllInteractions()
                 .create();
+
+
+        // Creation of the buttons
+        GuiItem leftGuiItem = ItemBuilder.from(ItemGui.leftItem).asGuiItem(inventoryClickEvent -> {
+            rewards.previous();
+        });
+        GuiItem rightGuiItem = ItemBuilder.from(ItemGui.rightItem).asGuiItem(inventoryClickEvent -> {
+            rewards.next();
+        });
+        GuiItem glassPaneItemGui = ItemBuilder.from(ItemGui.glassPaneItem).asGuiItem();
+
+        // Placing of the buttons
+        for (int i = 1; i < 10; i++) {
+            rewards.setItem(5, i, glassPaneItemGui);
+        }
+        rewards.setItem(6, 1, glassPaneItemGui);
+        rewards.setItem(6, 2, glassPaneItemGui);
+        rewards.setItem(6, 3, glassPaneItemGui);
+        rewards.setItem(6, 4, leftGuiItem);
+        rewards.setItem(6, 5, glassPaneItemGui);
+        rewards.setItem(6, 6, rightGuiItem);
+        rewards.setItem(6, 7, glassPaneItemGui);
+        rewards.setItem(6, 8, glassPaneItemGui);
+        rewards.setItem(6, 9, glassPaneItemGui);
 
         ConfigurationSection userSection = RewardsManager.REWARDS_CONFIG.getConfigurationSection(player.getUniqueId().toString());
         for (String key : userSection.getKeys(false)) {

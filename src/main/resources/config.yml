@@ -1,3 +1,9 @@
+database:
+  url: "obf-eu-de.bloom.host:3306/s45215_OBGiveAll"
+  username: "u45215_pcsZqY9Cen"
+  password: "2zpgiuvJbbMuIrQiM8N5mOKg"
+
+
 # Variables %kitName% %playerName%
 
 # give is for the text linked to the obgiveall command
@@ -8,6 +14,7 @@ give:
   givenToEveryone: "Le kit %kitName% a été donné à tous les joueurs !"
   givenToSpecific: "Le kit %kitName% a été donné à %playerName%"
   playerUnfounded: "Le joueur %playerName% n'a jamais joué sur ce serveur !"
+  noPlayerOnline: "&4Aucuns joueurs de connectés sur le serveur !"
 
 # rewards is for the text linked to the recompense command
 rewards:
