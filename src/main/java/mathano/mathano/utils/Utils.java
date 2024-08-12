@@ -1,6 +1,5 @@
 package mathano.mathano.utils;
 
-import mathano.mathano.OBGiveAll;
 import mathano.mathano.managers.ConfigManager;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;

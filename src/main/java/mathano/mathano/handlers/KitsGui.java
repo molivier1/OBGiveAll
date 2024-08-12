@@ -7,11 +7,12 @@ import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import dev.triumphteam.gui.guis.StorageGui;
 import mathano.mathano.OBGiveAll;
+import mathano.mathano.database.DataKits;
 import mathano.mathano.database.jsondata.DataKitsJson;
-import mathano.mathano.database.jsondata.ItemMetaJson;
-import mathano.mathano.database.jsondata.ItemStackJson;
+import mathano.mathano.database.serialization.Serialization;
 import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.DatabaseManager;
 import mathano.mathano.managers.JsonManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
@@ -21,18 +22,11 @@ import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -83,24 +77,12 @@ public class KitsGui {
         mainGui.setItem(6, 8, glassPaneItemGui);
         mainGui.setItem(6, 9, exitGuiItem);
 
-
-        ItemStack icon;
-        ItemMeta iconMeta;
-
-        for (String key : DataKitsManager.DATA_KITS_CONFIG.getKeys(false)) {
-            //We are getting every key from our config.yml file
-            ConfigurationSection section = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(key);
-            if (section.getItemStack("name") != null) {
-                icon = new ItemStack(section.getItemStack("name"));
-                iconMeta = icon.getItemMeta();
-                iconMeta.setDisplayName(iconMeta.getDisplayName());
-                icon.setItemMeta(iconMeta);
-                GuiItem iconGui = ItemBuilder.from(icon).asGuiItem(inventoryClickEvent -> {
-                    kitEditGUI(player, inventoryClickEvent.getCurrentItem().getItemMeta().getDisplayName());
-                });
-                mainGui.addItem(iconGui);
-            }
-        }
+        DatabaseManager.dataKits.forEach((kit_name, dataKit) -> {
+            GuiItem iconGui = ItemBuilder.from(dataKit.getIcon()).asGuiItem(inventoryClickEvent -> {
+                kitEditGUI(player, inventoryClickEvent.getCurrentItem().getItemMeta().getDisplayName());
+            });
+            mainGui.addItem(iconGui);
+        });
 
         mainGui.open(player);
     }
@@ -262,7 +244,7 @@ public class KitsGui {
         kitEditGui.setItem(6, 9, exitGuiItem);
 
 
-        ConfigurationSection section = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(name);
+        /*ConfigurationSection section = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(name);
 
         int cmp = section.getKeys(false).size() - 1;
 
@@ -276,7 +258,14 @@ public class KitsGui {
 
         ItemStack icon = section.getItemStack("name");
         GuiItem iconGui = ItemBuilder.from(icon).asGuiItem();
-        kitEditGui.setItem(47, iconGui);
+        kitEditGui.setItem(47, iconGui);*/
+
+
+        DataKits dataKit = DatabaseManager.dataKits.get(name);
+
+        dataKit.getItems().forEach(kitEditGui::addItem);
+
+        kitEditGui.setItem(47, ItemBuilder.from(dataKit.getIcon()).asGuiItem());
 
         kitEditGui.open(player);
     }
@@ -403,42 +392,6 @@ public class KitsGui {
         }
     }
 
-    /*private void saveKit2(Inventory kit, Player player, String name, String oldName) {
-        ItemStack icon = kit.getItem(47);
-        ItemStackJson iconJson = new ItemStackJson();
-
-        if (icon == null) {
-            icon = new ItemStack(Material.CHEST);
-        }
-        ItemMeta iconMeta = icon.getItemMeta();
-        iconMeta.setDisplayName(name);
-
-        icon.setItemMeta(iconMeta);
-
-        iconJson.setMaterial(icon.getType());
-        iconJson.setAmount(icon.getAmount());
-        //iconJson.setMeta(createItemMetaJson(icon));
-        iconJson.setMeta(icon.getItemMeta());
-
-        List<ItemStackJson> itemStackJsonList = new ArrayList<>();
-
-        getKitContent(kit).forEach(itemStack -> {
-            ItemStackJson item = new ItemStackJson();
-            //item.setMeta(createItemMetaJson(itemStack));
-            item.setMeta(itemStack.getItemMeta());
-            item.setMaterial(itemStack.getType());
-            item.setAmount(itemStack.getAmount());
-            itemStackJsonList.add(item);
-        });
-
-        DataKitsJson dataKitsJson = new DataKitsJson();
-        dataKitsJson.setIcon(iconJson);
-        dataKitsJson.setItems(itemStackJsonList);
-        dataKitsJson.setName(name);
-
-        OBGiveAll.INSTANCE.getLogger().info(JsonManager.INSTANCE.createJsonKit(dataKitsJson));
-    }*/
-
     private List<ItemStack> getKitContent(Inventory kit) {
         List<ItemStack> items = new ArrayList<>();
         ItemStack item;
@@ -450,36 +403,6 @@ public class KitsGui {
             items.add(item);
         }
         return items;
-    }
-
-    private ItemMetaJson createItemMetaJson(ItemStack item) {
-        ItemMeta itemMeta = item.getItemMeta();
-        ItemMetaJson itemMetaJson = new ItemMetaJson();
-
-        if (itemMeta.getItemFlags().isEmpty()) {
-            itemMetaJson.setItemFlag(itemMeta.getItemFlags());
-        }
-
-        if (itemMeta.hasLore()) {
-            itemMetaJson.setLore(itemMeta.getLore());
-        }
-        if(itemMeta.hasEnchants()) {
-            itemMetaJson.setEnchantments(itemMeta.getEnchants());
-        }
-
-        if (itemMeta.hasDisplayName()) {
-            itemMetaJson.setDisplayName(itemMeta.getDisplayName());
-        }
-
-        if (itemMeta.hasCustomModelData()) {
-            itemMetaJson.setCustomModelData(itemMeta.getCustomModelData());
-        }
-
-        if (!itemMeta.getPersistentDataContainer().isEmpty()) {
-            itemMetaJson.setPersistentDataContainer(itemMeta.getPersistentDataContainer());
-        }
-
-        return itemMetaJson;
     }
 
     private void saveKit2(Inventory kit, Player player, String name, String oldName) {
@@ -497,7 +420,7 @@ public class KitsGui {
         icon.setItemMeta(iconMeta);
 
         //iconJson.setItemStack(icon);
-        iconJson = serializeAndEncodeItemStack(icon);
+        iconJson = Serialization.INSTANCE.serializeAndEncodeItemStack(icon);
 
         //List<ItemStackJson> itemStackJsonList = new ArrayList<>();
         List<String> itemStackJsonList = new ArrayList<>();
@@ -506,7 +429,7 @@ public class KitsGui {
             //ItemStackJson item = new ItemStackJson();
             //item.setItemStack(itemStack);
             //itemStackJsonList.add(item);
-            itemStackJsonList.add(serializeAndEncodeItemStack(itemStack));
+            itemStackJsonList.add(Serialization.INSTANCE.serializeAndEncodeItemStack(itemStack));
         });
 
         DataKitsJson dataKitsJson = new DataKitsJson();
@@ -518,51 +441,27 @@ public class KitsGui {
 
         OBGiveAll.INSTANCE.getLogger().info("");
 
+        DatabaseManager.INSTANCE.addKit(dataKitsJson);
+
         try {
-            OBGiveAll.INSTANCE.getLogger().info(deserialize(JsonManager.INSTANCE.reader.readValue(JsonManager.INSTANCE.createJsonKit(dataKitsJson), DataKitsJson.class).getIcon()));
+            OBGiveAll.INSTANCE.getLogger().info(Serialization.INSTANCE.deserialize(JsonManager.INSTANCE.reader.readValue(JsonManager.INSTANCE.createJsonKit(dataKitsJson), DataKitsJson.class).getIcon()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         try {
-            player.getInventory().addItem(deserializeAndDecodeItemStack(JsonManager.INSTANCE.reader.readValue(JsonManager.INSTANCE.createJsonKit(dataKitsJson), DataKitsJson.class).getIcon()));
+            String content = DatabaseManager.INSTANCE.getKit(dataKitsJson.getName());
+
+            List<ItemStack> itemStackList = Serialization.INSTANCE.deserializeAndDecodeItemStackList(JsonManager.INSTANCE.reader.readValue(content, DataKitsJson.class).getItems());
+
+            itemStackList.forEach(itemStack -> {
+                player.getInventory().addItem(itemStack);
+                player.sendMessage(Objects.requireNonNull(itemStack.getItemMeta()).getDisplayName() + " obtenu avec bdd");
+            });
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String serializeAndEncodeItemStack(ItemStack item){
-        try{
-            //Serialize the item(turn it into byte stream)
-            ByteArrayOutputStream io = new ByteArrayOutputStream();
-            BukkitObjectOutputStream os = new BukkitObjectOutputStream(io);
-            os.writeObject(item);
-            os.flush();
-
-            byte[] serializedObject = io.toByteArray();
-            return new String(Base64.getEncoder().encode(serializedObject));
-        }catch (IOException ex){
-            System.out.println(ex);
-        }
-        return "";
-    }
-
-
-    public ItemStack deserializeAndDecodeItemStack(String encodedObject){
-        try{
-            byte[] serializedObject = Base64.getDecoder().decode(encodedObject);
-            ByteArrayInputStream in = new ByteArrayInputStream(serializedObject);
-            BukkitObjectInputStream is = new BukkitObjectInputStream(in);
-
-            return (ItemStack) is.readObject();
-        }catch (IOException | ClassNotFoundException ex){
-            System.out.println(ex);
-        }
-        return null;
-    }
-
-    public String deserialize(String encodedObject){
-        byte[] serializedObject = Base64.getDecoder().decode(encodedObject);
-        return Arrays.toString(serializedObject);
-    }
 }

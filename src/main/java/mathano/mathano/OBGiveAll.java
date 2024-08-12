@@ -1,11 +1,14 @@
 package mathano.mathano;
 
+import mathano.mathano.database.serialization.Serialization;
 import mathano.mathano.handlers.Give;
 import mathano.mathano.handlers.KitsGui;
 import mathano.mathano.listeners.CommandListener;
 import mathano.mathano.managers.*;
 import mathano.mathano.utils.AutoCompletion;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.Serial;
 
 public final class OBGiveAll extends JavaPlugin {
     public static OBGiveAll INSTANCE;
@@ -17,6 +20,7 @@ public final class OBGiveAll extends JavaPlugin {
     private DatabaseManager databaseManager;
     private KitsGui kitsGui;
     private JsonManager jsonManager;
+    private Serialization serialization;
 
     @Override
     public void onEnable() {
@@ -29,11 +33,13 @@ public final class OBGiveAll extends JavaPlugin {
 
         give = new Give();
 
+        serialization = new Serialization();
+
+        jsonManager = new JsonManager();
+
         databaseManager = new DatabaseManager();
 
         kitsGui = new KitsGui();
-
-        jsonManager = new JsonManager();
 
         initCommands();
     }

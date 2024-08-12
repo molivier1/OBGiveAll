@@ -9,7 +9,6 @@ public enum Placeholders {
 
     private final String placeholder;
 
-
     private Placeholders (String placeholder) {
         this.placeholder = placeholder;
     }
