@@ -1,6 +1,7 @@
 package mathano.mathano.utils;
 
 import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.DatabaseManager;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -33,7 +34,8 @@ public class AutoCompletion implements TabCompleter {
                 }
 
                 if (args.length == 2) {
-                    arguments.addAll(DataKitsManager.DATA_KITS_CONFIG.getKeys(false));
+                    //arguments.addAll(DataKitsManager.DATA_KITS_CONFIG.getKeys(false));
+                    arguments.addAll(DatabaseManager.dataKits.keySet());
                 }
 
                 result = sendResult(args);

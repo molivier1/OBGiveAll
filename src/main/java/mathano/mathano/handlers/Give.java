@@ -2,12 +2,14 @@ package mathano.mathano.handlers;
 
 import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.DatabaseManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 
@@ -93,4 +95,24 @@ public class Give {
         }
     }
 
+    public void toSpecificPlayer2(Player admin, String kitName, Server server, String playerName) {
+        Player givenPlayer = server.getPlayer(playerName);
+
+        UUID playerUUID = givenPlayer.getUniqueId();
+
+
+        if (!DatabaseManager.rewards.containsKey(playerUUID)) {
+            // If the player does not exist in the cache, initialize an empty HashMap for them
+            DatabaseManager.rewards.put(playerUUID, new HashMap<>());
+        }
+
+        // Get the player's rewards from the cache
+        HashMap<String, Integer> playerRewards = DatabaseManager.rewards.get(playerUUID);
+
+        // Increment the value for the specific kit
+        playerRewards.put(kitName, playerRewards.getOrDefault(kitName, 0) + 1);
+
+        // Update the cache
+        DatabaseManager.rewards.put(playerUUID, playerRewards);
+    }
 }

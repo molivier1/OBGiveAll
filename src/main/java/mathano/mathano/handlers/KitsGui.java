@@ -215,7 +215,21 @@ public class KitsGui {
                     .create();
 
             GuiItem confirmItemGui = ItemBuilder.from(ItemGui.confirmItem).asGuiItem(inventoryClickEvent1 -> {
+
+
+
+                // VERIFIER SI FONCTIONNE AVEC REMPLACEMENT PAR name
+                //
+                //
+                // IMPORTANT
                 deleteKit(inventoryClickEvent.getClickedInventory().getItem(47).getItemMeta().getDisplayName(), player);
+
+
+
+
+
+
+
                 mainGui(player);
             });
 
@@ -243,27 +257,9 @@ public class KitsGui {
         kitEditGui.setItem(6, 8, glassPaneItemGui);
         kitEditGui.setItem(6, 9, exitGuiItem);
 
-
-        /*ConfigurationSection section = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(name);
-
-        int cmp = section.getKeys(false).size() - 1;
-
-        for (int i = 0; i < cmp; i++) {
-            String path = Integer.toString(i);
-
-            if (section.isItemStack(path)) {
-                kitEditGui.addItem(section.getItemStack(path));
-            }
-        }
-
-        ItemStack icon = section.getItemStack("name");
-        GuiItem iconGui = ItemBuilder.from(icon).asGuiItem();
-        kitEditGui.setItem(47, iconGui);*/
-
-
         DataKits dataKit = DatabaseManager.dataKits.get(name);
 
-        dataKit.getItems().forEach(kitEditGui::addItem);
+        kitEditGui.addItem(dataKit.getItems());
 
         kitEditGui.setItem(47, ItemBuilder.from(dataKit.getIcon()).asGuiItem());
 
@@ -341,7 +337,26 @@ public class KitsGui {
 
     // Deletes the selected kit from the DataKits and Rewards cache
     public static void deleteKit(String name, Player player) {
-        DataKitsManager.DATA_KITS_CONFIG.set(name, null);
+        DatabaseManager.dataKits.remove(name);
+        player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été supprimé !");
+
+
+
+
+
+
+
+
+        // for loop pour adapter rewards !!!!!
+
+
+
+
+
+
+
+
+        /*DataKitsManager.DATA_KITS_CONFIG.set(name, null);
         player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été supprimé !");
 
         for (String key : RewardsManager.REWARDS_CONFIG.getKeys(false)) {
@@ -353,14 +368,16 @@ public class KitsGui {
                     RewardsManager.REWARDS_CONFIG.set(player.getUniqueId().toString(), null);
                 }
             }
-        }
+        }*/
     }
 
     public List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, int length) {
         if (!newKitName.equalsIgnoreCase("")
                 && !newKitName.contains(" ")) {
             if (!edit) {
-                if (DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)) {
+
+                //DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)
+                if (DatabaseManager.dataKits.containsKey(newKitName)) {
                     // Message sent when the saved kit already exists
                     player.sendMessage(Utils.getText(section, "alreadyExists", Placeholders.KIT_NAME.set(newKitName)));
                     return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
@@ -370,13 +387,17 @@ public class KitsGui {
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
             } else {
-                if (DataKitsManager.DATA_KITS_CONFIG.contains(newKitName) && newKitName.equals(oldKitName)) {
-                    saveKit(clickedInventory, player, newKitName, DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                // DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)
+                if (DatabaseManager.dataKits.containsKey(newKitName) && newKitName.equals(oldKitName)) {
+                    //saveKit(clickedInventory, player, newKitName, DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                    saveKit2(clickedInventory, player, newKitName, oldKitName);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
 
-                if (!DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)) {
-                    saveKit(clickedInventory, player, newKitName, DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                // !DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)
+                if (!DatabaseManager.dataKits.containsKey(newKitName)) {
+                    //saveKit(clickedInventory, player, newKitName, DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(oldKitName).getItemStack("name").getItemMeta().getDisplayName(), length);
+                    saveKit2(clickedInventory, player, newKitName, oldKitName);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 } else {
                     player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
@@ -406,9 +427,61 @@ public class KitsGui {
     }
 
     private void saveKit2(Inventory kit, Player player, String name, String oldName) {
+        boolean edit = false;
+
         ItemStack icon = kit.getItem(47);
-        //ItemStackJson iconJson = new ItemStackJson();
-        Gson gson = new Gson();
+
+        if (icon == null) {
+            icon = new ItemStack(Material.CHEST);
+        }
+        ItemMeta iconMeta = icon.getItemMeta();
+        iconMeta.setDisplayName(name);
+        icon.setItemMeta(iconMeta);
+
+        if (DatabaseManager.dataKits.containsKey(name)) {
+            edit = true;
+        }
+
+        DataKits dataKit = new DataKits();
+
+        dataKit.setName(name);
+        dataKit.setIcon(icon);
+        dataKit.setItems(getKitContent(kit));
+        DatabaseManager.dataKits.put(name, dataKit);
+
+
+        if (oldName != null && DatabaseManager.dataKits.containsKey(oldName)) {
+            DatabaseManager.dataKits.remove(oldName);
+
+
+
+
+
+            // for loop pour adapter les rewards !!!!!
+
+
+
+
+
+
+            edit = true;
+        }
+
+
+        if (edit) {
+            // Message sent whenever a kit was successfully modified
+            player.sendMessage(Utils.getText(section, "kitModified", Placeholders.KIT_NAME.set(name)));
+
+        } else {
+            // Message sent whenever a kit was successfully created
+            player.sendMessage(Utils.getText(section, "kitCreated", Placeholders.KIT_NAME.set(name)));
+        }
+
+
+
+
+
+        /*Gson gson = new Gson();
         String iconJson;
 
         if (icon == null) {
@@ -441,7 +514,11 @@ public class KitsGui {
 
         OBGiveAll.INSTANCE.getLogger().info("");
 
-        DatabaseManager.INSTANCE.addKit(dataKitsJson);
+        //DatabaseManager.INSTANCE.addKit(dataKitsJson);
+
+        if (DatabaseManager.dataKits.get(name) != null) {
+
+        }
 
         try {
             OBGiveAll.INSTANCE.getLogger().info(Serialization.INSTANCE.deserialize(JsonManager.INSTANCE.reader.readValue(JsonManager.INSTANCE.createJsonKit(dataKitsJson), DataKitsJson.class).getIcon()));
@@ -461,7 +538,6 @@ public class KitsGui {
 
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
-
 }
