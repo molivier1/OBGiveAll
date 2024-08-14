@@ -8,7 +8,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -46,11 +45,6 @@ public class Serialization {
             System.out.println(ex);
         }
         return null;
-    }
-
-    public String deserialize(String encodedObject){
-        byte[] serializedObject = Base64.getDecoder().decode(encodedObject);
-        return Arrays.toString(serializedObject);
     }
 
     public List<ItemStack> deserializeAndDecodeItemStackList(List<String> encodedObjectList) {

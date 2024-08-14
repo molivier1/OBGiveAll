@@ -6,7 +6,6 @@ import mathano.mathano.handlers.Give;
 import mathano.mathano.handlers.Rewards;
 import mathano.mathano.managers.ConfigManager;
 import mathano.mathano.managers.DataKitsManager;
-import mathano.mathano.managers.DatabaseManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import mathano.mathano.utils.Utils;
@@ -32,19 +31,13 @@ public class CommandListener implements CommandExecutor {
                 KitsGui.INSTANCE.mainGui(((Player) sender).getPlayer());
                 break;
             case "obgiveall":
-                /*if (!(sender instanceof Player)) {
-                    sender.sendMessage(Utils.getText("technic", "console"));
-                    return true;
-                }*/
-
                 if (args.length <= 1) {
                     // Message sent when the admin made a mistake in the command
                     sender.sendMessage(Utils.getText("technic", "badUsage"));
                     return true;
                 }
 
-                //!DataKitsManager.DATA_KITS_CONFIG.contains(args[1])
-                if (!DatabaseManager.dataKits.containsKey(args[1])) {
+                if (!DataKitsManager.dataKits.containsKey(args[1])) {
                     // Message sent when the kit doesn't exist
                     sender.sendMessage(Utils.getText("give", "invalidKit", Placeholders.KIT_NAME.set(args[1])));
                     return true;
@@ -58,7 +51,7 @@ public class CommandListener implements CommandExecutor {
                     Give.INSTANCE.toEveryone(playerGive, args[1], server);
                 } else {
                     // Gives to specific player
-                    Give.INSTANCE.toSpecificPlayer2(playerGive, args[1], server, args[0]);
+                    Give.INSTANCE.toSpecificPlayer(playerGive, args[1], server, args[0]);
                 }
                 break;
 
@@ -72,7 +65,7 @@ public class CommandListener implements CommandExecutor {
 
                 new ItemGui();
 
-                if(RewardsManager.REWARDS_CONFIG.contains(playerRecompense.getUniqueId().toString())) {
+                if(RewardsManager.rewards.containsKey(playerRecompense.getUniqueId())) {
                     Rewards.rewardsGui(playerRecompense);
                 } else {
                     playerRecompense.sendMessage(Utils.getText("rewards", "noRewards"));
@@ -80,14 +73,10 @@ public class CommandListener implements CommandExecutor {
                 break;
 
             case "obreload":
-                /*ConfigManager.INSTANCE.reload();
+                ConfigManager.INSTANCE.reload();
 
                 // Message sent when the config is reloaded
-                sender.sendMessage(Utils.getText("technic", "reload"));*/
-
-                DatabaseManager.INSTANCE.saveKitsFromCache();
-                DatabaseManager.INSTANCE.saveRewardsFromCache();
-
+                sender.sendMessage(Utils.getText("technic", "reload"));
                 break;
         }
         return true;

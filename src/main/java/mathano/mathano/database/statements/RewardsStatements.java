@@ -5,8 +5,6 @@ public class RewardsStatements {
             + "player_uuid      VARCHAR(36)     NOT NULL PRIMARY KEY, "
             + "rewards          JSON            NOT NULL);";
 
-    //public static final String INSERT_JSON = "REPLACE INTO rewards (player_uuid) VALUES(?);";
-
     public static final String INSERT_REWARDS = "INSERT INTO rewards (player_uuid, rewards) VALUES (?, ?) ON DUPLICATE KEY UPDATE rewards = ?;";
 
     public static final String SELECT_REWARDS = "SELECT rewards FROM rewards WHERE player_uuid = ?;";

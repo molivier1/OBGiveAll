@@ -1,63 +1,89 @@
 package mathano.mathano.managers;
 
-import mathano.mathano.OBGiveAll;
-import mathano.mathano.utils.Utils;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import mathano.mathano.database.statements.RewardsStatements;
 
-import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 public class RewardsManager {
     public static RewardsManager INSTANCE;
 
-    public static FileConfiguration REWARDS_CONFIG;
-
-    private final File rewardsConfigFile;
-
-    private static ConfigurationSection scheduleSection;
+    public static  Map<UUID, HashMap<String, Integer>> rewards = new HashMap<>();
 
     public RewardsManager() {
         INSTANCE = this;
-
-        // Caching of the yml file
-        rewardsConfigFile = new File(OBGiveAll.INSTANCE.getDataFolder(), "rewards.yml");
-        reload();
-
-        scheduleSection = ConfigManager.CONFIG.getConfigurationSection("schedule");
-
-        scheduleSave();
     }
 
-    public void reload() {
-        if(!rewardsConfigFile.exists()) {
-            OBGiveAll.INSTANCE.saveResource("rewards.yml", false);
-        }
-        REWARDS_CONFIG = YamlConfiguration.loadConfiguration(rewardsConfigFile);
-    }
+    public void loadRewardsIntoCache() {
+        try(Connection connection = DatabaseManager.INSTANCE.getConnection()) {
+            PreparedStatement selectStatement = connection.prepareStatement(RewardsStatements.LOAD_REWARDS_CACHE);
+            ResultSet resultSet = selectStatement.executeQuery();
 
-    // Saves cached rewards into rewards.yml
-    public void save() { // "./plugins/OBGiveAll/rewards.yml"
-        try {
-            REWARDS_CONFIG.save(rewardsConfigFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            while (resultSet.next()) {
+                UUID playerUUID = UUID.fromString(resultSet.getString("player_uuid"));
+
+                String rewardsJson = resultSet.getString("rewards");
+
+                HashMap<String, Integer> playerRewards = JsonManager.INSTANCE.mapper.readValue(rewardsJson, new TypeReference<HashMap<String, Integer>>() {});
+
+                rewards.put(playerUUID, playerRewards);
+            }
+
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public void scheduleSave() {
-        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
-            OBGiveAll.INSTANCE.getLogger().info(Utils.getText("schedule", "saveMessage"));
-            save();
-        }, scheduleSection.getInt("initialDelay"), scheduleSection.getInt("time"), TimeUnit.MINUTES);
+    public void saveRewardsFromCache() {
+        try(Connection connection = DatabaseManager.INSTANCE.getConnection()) {
+            PreparedStatement insertUpdateStatement = connection.prepareStatement(RewardsStatements.INSERT_REWARDS);
+            PreparedStatement selectStatement = connection.prepareStatement(RewardsStatements.SELECT_REWARDS);
+            PreparedStatement deleteStatement = connection.prepareStatement(RewardsStatements.DELETE_REWARDS);
+
+            ResultSet resultSet = connection.createStatement().executeQuery(RewardsStatements.SELECT_PLAYER_UUID);
+            while (resultSet.next()) {
+                UUID player_UUID = UUID.fromString(resultSet.getString("player_uuid"));
+                if (!rewards.containsKey(player_UUID)) {
+                    deleteStatement.setString(1, player_UUID.toString());
+                    deleteStatement.executeUpdate();
+                }
+            }
+
+            for (Map.Entry<UUID, HashMap<String, Integer>> entry : rewards.entrySet()) {
+                UUID playerUUID = entry.getKey();
+                HashMap<String, Integer> playerRewards = entry.getValue();
+
+                String rewardsJson = JsonManager.INSTANCE.writer.writeValueAsString(playerRewards);
+
+                selectStatement.setString(1, playerUUID.toString());
+                ResultSet selectResult = selectStatement.executeQuery();
+
+                if (selectResult.next()) {
+                    String dbRewardsJson = selectResult.getString("rewards");
+                    if (!rewardsJson.equals(dbRewardsJson)) {
+                        insertUpdateStatement.setString(1, playerUUID.toString());
+                        insertUpdateStatement.setString(2, rewardsJson);
+                        insertUpdateStatement.setString(3, rewardsJson);
+                        insertUpdateStatement.executeUpdate();
+                    }
+                } else {
+                    insertUpdateStatement.setString(1, playerUUID.toString());
+                    insertUpdateStatement.setString(2, rewardsJson);
+                    insertUpdateStatement.setString(3, rewardsJson);
+                    insertUpdateStatement.executeUpdate();
+                }
+            }
+
+        } catch (SQLException | JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
-
-
-
-    public static HashMap<UUID, HashMap<String, Integer>> PLAYERS_REWARD_CACHE = new HashMap<>();
 }

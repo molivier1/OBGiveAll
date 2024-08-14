@@ -8,8 +8,6 @@ import mathano.mathano.managers.*;
 import mathano.mathano.utils.AutoCompletion;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.Serial;
-
 public final class OBGiveAll extends JavaPlugin {
     public static OBGiveAll INSTANCE;
 
@@ -28,14 +26,15 @@ public final class OBGiveAll extends JavaPlugin {
         INSTANCE = this;
 
         configManager = new ConfigManager();
-        dataKitsManager = new DataKitsManager();
-        rewardsManager = new RewardsManager();
 
         give = new Give();
 
         serialization = new Serialization();
 
         jsonManager = new JsonManager();
+
+        dataKitsManager = new DataKitsManager();
+        rewardsManager = new RewardsManager();
 
         databaseManager = new DatabaseManager();
 
@@ -47,8 +46,8 @@ public final class OBGiveAll extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        rewardsManager.save();
-        dataKitsManager.save();
+        rewardsManager.saveRewardsFromCache();
+        dataKitsManager.saveKitsFromCache();
         databaseManager.close();
     }
 

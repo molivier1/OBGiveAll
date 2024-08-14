@@ -2,7 +2,6 @@ package mathano.mathano.handlers;
 
 import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
-import mathano.mathano.managers.DatabaseManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.Utils;
 import org.bukkit.Bukkit;
@@ -24,27 +23,22 @@ public class Give {
 
     // Adds specified kit in the rewards config to every connected players
     public void toEveryone(Player admin, String kitName, Server server) {
-        if (DataKitsManager.DATA_KITS_CONFIG.contains(kitName)) {
+        if (DataKitsManager.dataKits.containsKey(kitName)) {
             int playersOnline = server.getOnlinePlayers().size();
-            Player[] listPlayer = server.getOnlinePlayers().toArray(new Player[playersOnline]);
-            Player currentPlayer;
 
             if (playersOnline <= 0) {
                 admin.sendMessage(Utils.getText(section, "noPlayerOnline"));
                 return;
             }
 
+            Player[] listPlayer = server.getOnlinePlayers().toArray(new Player[playersOnline]);
+            Player currentPlayer;
+
             for (int i = 0; i < playersOnline; i++) {
                 currentPlayer = listPlayer[i];
+                UUID uuid = currentPlayer.getUniqueId();
 
-                int numberOfKits = 1;
-
-                if (RewardsManager.REWARDS_CONFIG.contains(currentPlayer.getUniqueId() + "." + kitName)) {
-                    numberOfKits = RewardsManager.REWARDS_CONFIG.getInt(currentPlayer.getUniqueId() + "." + kitName);
-                    numberOfKits++;
-                }
-
-                RewardsManager.REWARDS_CONFIG.set(currentPlayer.getUniqueId() + "." + kitName, numberOfKits);
+                incrementRewardForPlayer(uuid, kitName);
 
                 currentPlayer.sendMessage(Utils.getText(section, "kitReceived", Placeholders.KIT_NAME.set(kitName)));
                 currentPlayer.sendMessage((Utils.getText(section, "rewardsMessage")));
@@ -59,10 +53,10 @@ public class Give {
     // Adds specified kit in the rewards config to a player that already played on the server
     public void toSpecificPlayer(Player admin, String kitName, Server server, String playerName) {
         if((server.getPlayer(playerName) != null && server.getPlayer(playerName).isOnline()) || Bukkit.getOfflinePlayer(playerName).hasPlayedBefore()) {
-            if (DataKitsManager.DATA_KITS_CONFIG.contains(kitName)) {
+            if (DataKitsManager.dataKits.containsKey(kitName)) {
 
-                final UUID uuid;
-                final Player givenPlayer = server.getPlayer(playerName);
+                UUID uuid;
+                Player givenPlayer = server.getPlayer(playerName);
 
                 if (givenPlayer != null && givenPlayer.isOnline()) {
                     uuid = givenPlayer.getUniqueId();
@@ -70,16 +64,9 @@ public class Give {
                     uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId();
                 }
 
-                int numberOfKits = 1;
-
-                if(RewardsManager.REWARDS_CONFIG.contains(uuid + "." + kitName)){
-                    numberOfKits = RewardsManager.REWARDS_CONFIG.getInt(uuid + "." + kitName);
-                    numberOfKits++;
-                }
+                incrementRewardForPlayer(uuid, kitName);
 
                 admin.sendMessage(Utils.getText(section, "givenToSpecific", Placeholders.KIT_NAME.set(kitName), Placeholders.PLAYER_NAME.set(playerName)));
-
-                RewardsManager.REWARDS_CONFIG.set(uuid + "." + kitName, numberOfKits);
 
                 if (givenPlayer != null && givenPlayer.isOnline()) {
                     givenPlayer.sendMessage(Utils.getText(section, "kitReceived", Placeholders.KIT_NAME.set(kitName)));
@@ -95,24 +82,19 @@ public class Give {
         }
     }
 
-    public void toSpecificPlayer2(Player admin, String kitName, Server server, String playerName) {
-        Player givenPlayer = server.getPlayer(playerName);
-
-        UUID playerUUID = givenPlayer.getUniqueId();
-
-
-        if (!DatabaseManager.rewards.containsKey(playerUUID)) {
+    private void incrementRewardForPlayer(UUID uuid, String kitName) {
+        if (!RewardsManager.rewards.containsKey(uuid)) {
             // If the player does not exist in the cache, initialize an empty HashMap for them
-            DatabaseManager.rewards.put(playerUUID, new HashMap<>());
+            RewardsManager.rewards.put(uuid, new HashMap<>());
         }
 
         // Get the player's rewards from the cache
-        HashMap<String, Integer> playerRewards = DatabaseManager.rewards.get(playerUUID);
+        HashMap<String, Integer> playerRewards = RewardsManager.rewards.get(uuid);
 
         // Increment the value for the specific kit
         playerRewards.put(kitName, playerRewards.getOrDefault(kitName, 0) + 1);
 
         // Update the cache
-        DatabaseManager.rewards.put(playerUUID, playerRewards);
+        RewardsManager.rewards.put(uuid, playerRewards);
     }
 }

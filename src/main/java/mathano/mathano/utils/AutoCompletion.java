@@ -35,7 +35,7 @@ public class AutoCompletion implements TabCompleter {
 
                 if (args.length == 2) {
                     //arguments.addAll(DataKitsManager.DATA_KITS_CONFIG.getKeys(false));
-                    arguments.addAll(DatabaseManager.dataKits.keySet());
+                    arguments.addAll(DataKitsManager.dataKits.keySet());
                 }
 
                 result = sendResult(args);

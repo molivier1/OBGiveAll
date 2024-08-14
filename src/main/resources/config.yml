@@ -1,3 +1,4 @@
+# url: <ip|domain>:port/databaseName
 database:
   url: ""
   username: ""

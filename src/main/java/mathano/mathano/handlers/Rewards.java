@@ -10,10 +10,12 @@ import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import mathano.mathano.utils.Utils;
 import net.kyori.adventure.text.Component;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Rewards {
@@ -53,43 +55,44 @@ public class Rewards {
         rewards.setItem(6, 8, glassPaneItemGui);
         rewards.setItem(6, 9, glassPaneItemGui);
 
-        ConfigurationSection userSection = RewardsManager.REWARDS_CONFIG.getConfigurationSection(player.getUniqueId().toString());
-        for (String key : userSection.getKeys(false)) {
-            int amount = userSection.getInt(key);
-            for (int i =0; i<amount; i++) {
-                ItemStack icon = DataKitsManager.DATA_KITS_CONFIG.getItemStack(key + ".name");
-                ItemMeta meta = icon.getItemMeta();
-                meta.setDisplayName(key);
-                icon.setItemMeta(meta);
-                GuiItem kitItem = ItemBuilder.from(icon).asGuiItem(inventoryClickEvent -> {
+
+        HashMap<String, Integer> playerRewards = RewardsManager.rewards.get(player.getUniqueId());
+        playerRewards.forEach((kitName, amount) -> {
+            for (int i = 0; i < amount; i++) {
+                GuiItem kitItem = ItemBuilder.from(DataKitsManager.dataKits.get(kitName).getIcon()).asGuiItem(inventoryClickEvent -> {
                     rewards.close(player);
 
-                    // donne item + decremente/delete du file en CACHE
-                    int numberOfKits = userSection.getInt(key);
+                    int numberOfKits = playerRewards.get(kitName);
                     int initialNumber = numberOfKits;
                     numberOfKits--;
 
                     if(numberOfKits <= 0)
                     {
-                        userSection.set(key, null);
+                        //userSection.set(key, null);
+                        playerRewards.remove(kitName);
                     }
                     else {
-                        userSection.set(key, numberOfKits);
+                        //userSection.set(key, numberOfKits);
+                        playerRewards.put(kitName, numberOfKits);
                     }
 
-                    if (userSection.getKeys(false).size() <= 0) {
-                        RewardsManager.REWARDS_CONFIG.set(player.getUniqueId().toString(), null);
+                    //userSection.getKeys(false).size() <= 0
+                    if (playerRewards.size() <= 0) {
+                        //RewardsManager.REWARDS_CONFIG.set(player.getUniqueId().toString(), null);
+                        RewardsManager.rewards.remove(player.getUniqueId());
+                    } else {
+                        RewardsManager.rewards.put(player.getUniqueId(), playerRewards);
                     }
 
                     if (initialNumber > 0) {
                         // Message sent when a kit is claimed
-                        player.sendMessage(Utils.getText(section, "kitClaimed", Placeholders.KIT_NAME.set(key)));
-                        giveKit(player, key);
+                        player.sendMessage(Utils.getText(section, "kitClaimed", Placeholders.KIT_NAME.set(kitName)));
+                        giveKit(player, kitName);
                     }
                 });
                 rewards.addItem(kitItem);
             }
-        }
+        });
 
         rewards.open(player);
     }
@@ -97,25 +100,20 @@ public class Rewards {
     // Read through the dataKits config and give every item linked to the specified kit.
     // Decrements by 1 the corresponding kit in the rewards config.
     public static void giveKit(Player player, String kitName) {
-        ConfigurationSection kitSection = DataKitsManager.DATA_KITS_CONFIG.getConfigurationSection(kitName);
+        List<ItemStack> items = DataKitsManager.dataKits.get(kitName).getItems();
 
-        int numberOfKeys = kitSection.getKeys(false).size() - 1;
-        int check = 0;
+        AtomicInteger check = new AtomicInteger();
 
-        for(int i = 0; i < numberOfKeys; i++)
-        {
-            ItemStack currentItem = kitSection.getItemStack(String.valueOf(i));
-
-            if(player.getInventory().firstEmpty() != -1) {
+        items.forEach(currentItem -> {
+            if (player.getInventory().firstEmpty() != -1) {
                 player.getInventory().addItem(currentItem);
             } else {
-                //player.item
                 player.getWorld().dropItemNaturally(player.getLocation(), currentItem);
-                check = 1;
+                check.set(1);
             }
-        }
+        });
 
-        if(check != 0) {
+        if(check.get() != 0) {
             // Message sent whenever item dropped caused by a full inventory
             player.sendMessage(Utils.getText(section, "itemsDropped"));
         }
