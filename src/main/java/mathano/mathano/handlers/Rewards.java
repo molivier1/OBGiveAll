@@ -4,8 +4,11 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import mathano.mathano.OBGiveAll;
+import mathano.mathano.database.Logs;
 import mathano.mathano.enums.Placeholders;
 import mathano.mathano.managers.DataKitsManager;
+import mathano.mathano.managers.LogsManager;
 import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import mathano.mathano.utils.Utils;
@@ -13,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,6 +92,12 @@ public class Rewards {
                         // Message sent when a kit is claimed
                         player.sendMessage(Utils.getText(section, "kitClaimed", Placeholders.KIT_NAME.set(kitName)));
                         giveKit(player, kitName);
+                        OBGiveAll.INSTANCE.getLogger().info(Utils.getText(section, "playerClaimedKitLog", Placeholders.PLAYER_NAME.set(player.getDisplayName()), Placeholders.KIT_NAME.set(kitName)));
+                        Logs log = new Logs();
+                        log.setKit_name(kitName);
+                        log.setPlayer_uuid(player.getUniqueId());
+                        log.setTimestamp(new Timestamp(System.currentTimeMillis()));
+                        LogsManager.INSTANCE.insertLogs(log);
                     }
                 });
                 rewards.addItem(kitItem);

@@ -14,6 +14,7 @@ public final class OBGiveAll extends JavaPlugin {
     private ConfigManager configManager;
     private DataKitsManager dataKitsManager;
     private RewardsManager rewardsManager;
+    private LogsManager logsManager;
     private Give give;
     private DatabaseManager databaseManager;
     private KitsGui kitsGui;
@@ -35,6 +36,7 @@ public final class OBGiveAll extends JavaPlugin {
 
         dataKitsManager = new DataKitsManager();
         rewardsManager = new RewardsManager();
+        logsManager = new LogsManager();
 
         databaseManager = new DatabaseManager();
 

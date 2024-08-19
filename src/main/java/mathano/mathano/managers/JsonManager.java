@@ -29,6 +29,4 @@ public class JsonManager {
             throw new RuntimeException(e);
         }
     }
-
-
 }

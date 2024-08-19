@@ -248,7 +248,7 @@ public class KitsGui {
     // Deletes the selected kit from the DataKits and Rewards cache
     public static void deleteKit(String name, Player player) {
         DataKitsManager.dataKits.remove(name);
-        player.sendMessage(ChatColor.GREEN + "Le kit " + name + " a été supprimé !");
+        player.sendMessage(Utils.getText(section, "kitDeleted", Placeholders.KIT_NAME.set(name)));
 
         RewardsManager.rewards.forEach((uuid, rewardsHash) -> {
             if (rewardsHash.containsKey(name)) {

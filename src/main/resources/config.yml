@@ -22,11 +22,13 @@ rewards:
   kitClaimed: "Vous avez obtenu la récompense %kitName%"
   itemsDropped: "&4Certains items ont été drop au sol !"
   noRewards: "&4Vous n'avez pas de récompenses en attente."
+  playerClaimedKitLog: "Le joueur %playerName% a obtenu le kit %kitName%."
 
 # kitsGui is for the text to the kitsGui command
 kitsGui:
-  kitModified: "Le kit %kitName% a été modifié !"
   kitCreated: "Le kit %kitName% a été créé !"
+  kitModified: "Le kit %kitName% a été modifié !"
+  kitDeleted: "Le kit %kitName% a été supprimé !"
   alreadyExists: "&4Le kit %kitName% existe déjà !"
   spaceInName: "&4Le kit ne peut pas avoir d'espaces dans son nom !"
 

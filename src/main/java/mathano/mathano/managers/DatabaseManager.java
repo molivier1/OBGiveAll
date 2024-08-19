@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import mathano.mathano.OBGiveAll;
 import mathano.mathano.database.statements.DatakitsStatements;
+import mathano.mathano.database.statements.LogsStatements;
 import mathano.mathano.database.statements.RewardsStatements;
 import mathano.mathano.utils.Utils;
 
@@ -47,6 +48,7 @@ public class DatabaseManager {
         try(Connection connection = getConnection()) {
             connection.prepareStatement(RewardsStatements.CREATE_REWARDS_TABLE).executeUpdate();
             connection.prepareStatement(DatakitsStatements.CREATE_DATAKITS_TABLE).executeUpdate();
+            connection.prepareStatement(LogsStatements.CREATE_LOGS_TABLE).executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
