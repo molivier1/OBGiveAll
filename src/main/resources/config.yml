@@ -1,0 +1,44 @@
+# url: <ip|domain>:port/databaseName
+database:
+  url: ""
+  username: ""
+  password: ""
+
+
+# Variables %kitName% %playerName%
+
+# give is for the text linked to the obgiveall command
+give:
+  kitReceived: "Vous avez reçu le kit %kitName% !"
+  invalidKit: "&4Le kit %kitName% n'existe pas !"
+  rewardsMessage: "/recompense pour récupérer votre récompense."
+  givenToEveryone: "Le kit %kitName% a été donné à tous les joueurs !"
+  givenToSpecific: "Le kit %kitName% a été donné à %playerName%"
+  playerUnfounded: "Le joueur %playerName% n'a jamais joué sur ce serveur !"
+  noPlayerOnline: "&4Aucuns joueurs de connectés sur le serveur !"
+
+# rewards is for the text linked to the recompense command
+rewards:
+  kitClaimed: "Vous avez obtenu la récompense %kitName%"
+  itemsDropped: "&4Certains items ont été drop au sol !"
+  noRewards: "&4Vous n'avez pas de récompenses en attente."
+  playerClaimedKitLog: "Le joueur %playerName% a obtenu le kit %kitName%."
+
+# kitsGui is for the text to the kitsGui command
+kitsGui:
+  kitCreated: "Le kit %kitName% a été créé !"
+  kitModified: "Le kit %kitName% a été modifié !"
+  kitDeleted: "Le kit %kitName% a été supprimé !"
+  alreadyExists: "&4Le kit %kitName% existe déjà !"
+  spaceInName: "&4Le kit ne peut pas avoir d'espaces dans son nom !"
+
+# Time unite is in minutes!! Integer only!
+schedule:
+  initialDelay: 0
+  time: 15
+  saveMessage: "Sauvegarde OBGiveall"
+
+technic:
+  reload: "&2Config OBGiveAll chargées."
+  console: "&4La console ne peut pas utiliser cette commande."
+  badUsage: "&4Mauvais usage de la commande."

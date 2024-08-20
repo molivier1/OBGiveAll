@@ -17,8 +17,14 @@ commands:
     permission: obgiveall.giveall
     permission-message: You do not have permission.
 
-  rewards:
-    description: Open the rewards menu.
-    usage: /rewards
-    permission: obgiveall.rewards
+  recompense:
+    description: Open the recompense menu.
+    usage: /recompense
+    permission: obgiveall.recompense
+    permission-message: You do not have permission.
+
+  obreload:
+    description: Reloads the config and the database.
+    usage: /obreload
+    permission: obgiveall.reload
     permission-message: You do not have permission.

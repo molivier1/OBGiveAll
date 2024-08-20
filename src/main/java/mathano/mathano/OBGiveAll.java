@@ -1,117 +1,66 @@
 package mathano.mathano;
 
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
+import mathano.mathano.database.serialization.Serialization;
+import mathano.mathano.handlers.Give;
+import mathano.mathano.handlers.KitsGui;
+import mathano.mathano.listeners.CommandListener;
+import mathano.mathano.managers.*;
+import mathano.mathano.utils.AutoCompletion;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-
 public final class OBGiveAll extends JavaPlugin {
+    public static OBGiveAll INSTANCE;
 
-    private static OBGiveAll instance;
-
-    private FileConfiguration dataKitsConfig;
-    private File dataKitsConfigFile;
-
-    private FileConfiguration rewardsConfig;
-    private File rewardsConfigFile;
+    private ConfigManager configManager;
+    private DataKitsManager dataKitsManager;
+    private RewardsManager rewardsManager;
+    private LogsManager logsManager;
+    private Give give;
+    private DatabaseManager databaseManager;
+    private KitsGui kitsGui;
+    private JsonManager jsonManager;
+    private Serialization serialization;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
-        instance = this;
+        INSTANCE = this;
 
-        // Caching of the yml file
-        dataKitsConfigFile = new File(getDataFolder(), "dataKits.yml");
-        reloadDataKitsConfig();
+        configManager = new ConfigManager();
 
-        rewardsConfigFile = new File(getDataFolder(), "rewards.yml");
-        reloadRewardsConfig();
+        give = new Give();
 
-        // Scheduler that saves the cached data into the files every 15 minutes
-        scheduleSave();
+        serialization = new Serialization();
 
-        // Init of the various commands
-        getCommand("kitsgui").setExecutor(new KitsGui());
-        getCommand("obgiveall").setExecutor(new OBGiveAllCommand());
-        getCommand("rewards").setExecutor(new Rewards());
+        jsonManager = new JsonManager();
 
-        // Tab completions
-        getCommand("obgiveall").setTabCompleter(new AutoCompletion());
+        dataKitsManager = new DataKitsManager();
+        rewardsManager = new RewardsManager();
+        logsManager = new LogsManager();
+
+        databaseManager = new DatabaseManager();
+
+        kitsGui = new KitsGui();
+
+        initCommands();
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        saveRewardsConfig();
-        saveDataKitsConfig();
+        rewardsManager.saveRewardsFromCache();
+        dataKitsManager.saveKitsFromCache();
+        databaseManager.close();
     }
 
-    // Returns the instance of the main class, so it can be used in the other classes
-    public static OBGiveAll getInstance() {
-        return instance;
-    }
+    private void initCommands () {
+        // Init of the various commands
+        getCommand("kitsgui").setExecutor(new CommandListener());
+        getCommand("obgiveall").setExecutor(new CommandListener());
+        getCommand("recompense").setExecutor(new CommandListener());
+        getCommand("obreload").setExecutor(new CommandListener());
 
-    public void reloadDataKitsConfig() {
-        if (!dataKitsConfigFile.exists()) {
-            saveResource("dataKits.yml", false);
-        }
-        dataKitsConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(dataKitsConfigFile);
-    }
-
-    // Getter for dataKits...
-    public FileConfiguration getDataKitsConfig() {
-        return dataKitsConfig;
-    }
-
-    // ...and Setter for dataKits
-    public void setDataKitsConfig(FileConfiguration newDataKitsConfig) {
-        dataKitsConfig = newDataKitsConfig;
-    }
-
-    // Saves cached dataKits into dataKits.yml
-    public void saveDataKitsConfig () {
-        try {
-            dataKitsConfig.save("./plugins/OBGiveAll/dataKits.yml");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void reloadRewardsConfig() {
-        if(!rewardsConfigFile.exists()) {
-            saveResource("rewards.yml", false);
-        }
-        rewardsConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(rewardsConfigFile);
-    }
-
-    // Getter for rewards...
-    public FileConfiguration getRewardsConfig() {
-        return rewardsConfig;
-    }
-
-    // ...and Setter for rewards
-    public void setRewardsConfig(FileConfiguration newRewardsConfig) {
-        rewardsConfig = newRewardsConfig;
-    }
-
-    // Saves cached rewards into rewards.yml
-    public void saveRewardsConfig () {
-        try {
-            rewardsConfig.save("./plugins/OBGiveAll/rewards.yml");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void scheduleSave() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-                Bukkit.broadcastMessage("Test scheduler changer value !!");
-                saveRewardsConfig();
-            }
-        }, 0L, 20L); //0 Tick initial delay, 20 Tick (1 Second) between repeats
+        // Tab completions
+        getCommand("obgiveall").setTabCompleter(new AutoCompletion());
     }
 }
