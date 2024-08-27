@@ -66,6 +66,10 @@ public class Rewards {
                 GuiItem kitItem = ItemBuilder.from(DataKitsManager.dataKits.get(kitName).getIcon()).asGuiItem(inventoryClickEvent -> {
                     rewards.close(player);
 
+                    if (!RewardsManager.rewards.containsKey(player.getUniqueId())) {
+                        return;
+                    }
+
                     int numberOfKits = playerRewards.get(kitName);
                     int initialNumber = numberOfKits;
                     numberOfKits--;
