@@ -250,16 +250,21 @@ public class KitsGui {
         DataKitsManager.dataKits.remove(name);
         player.sendMessage(Utils.getText(section, "kitDeleted", Placeholders.KIT_NAME.set(name)));
 
-        RewardsManager.rewards.forEach((uuid, rewardsHash) -> {
+        Iterator<Map.Entry<UUID, HashMap<String, Integer>>> iterator = RewardsManager.rewards.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, HashMap<String, Integer>> entry = iterator.next();
+            UUID uuid = entry.getKey();
+            HashMap<String, Integer> rewardsHash = entry.getValue();
+
             if (rewardsHash.containsKey(name)) {
                 rewardsHash.remove(name);
-                if (rewardsHash.size() <= 0) {
-                    RewardsManager.rewards.remove(uuid);
+                if (rewardsHash.isEmpty()) {
+                    iterator.remove();
                 } else {
                     RewardsManager.rewards.put(uuid, rewardsHash);
                 }
             }
-        });
+        }
     }
 
     public List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit) {
