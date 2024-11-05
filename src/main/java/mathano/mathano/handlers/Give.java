@@ -78,6 +78,7 @@ public class Give {
             }
         } else {
             // Player never joined the server
+            // playerUnfounded a changer en playerNotFound
             admin.sendMessage(Utils.getText(section, "playerUnfounded", Placeholders.KIT_NAME.set(kitName)));
         }
     }

@@ -40,7 +40,7 @@ public final class OBGiveAll extends JavaPlugin {
 
         databaseManager = new DatabaseManager();
 
-        kitsGui = new KitsGui();
+        kitsGui = new KitsGui(this);
 
         initCommands();
     }
