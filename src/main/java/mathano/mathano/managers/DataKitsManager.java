@@ -31,33 +31,35 @@ public class DataKitsManager {
             while (resultSet.next()) {
                 String kitName = resultSet.getString("kit_name");
                 String content = resultSet.getString("content");
+                String command = resultSet.getString("command");
 
                 kitJSONCache.put(kitName, content);
+
+                DataKits data = new DataKits();
+                data.setName(kitName);
+                data.setCommand(command);
+
+                try {
+                    data.setIcon(Serialization.INSTANCE.deserializeAndDecodeItemStack(JsonManager.INSTANCE.reader.readValue(content, DataKitsJson.class).getIcon()));
+                    data.setItems(Serialization.INSTANCE.deserializeAndDecodeItemStackList(JsonManager.INSTANCE.reader.readValue(content, DataKitsJson.class).getItems()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                dataKits.put(kitName, data);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        kitJSONCache.forEach((kitName, content) -> {
-            DataKits data = new DataKits();
-            data.setName(kitName);
-            try {
-                data.setIcon(Serialization.INSTANCE.deserializeAndDecodeItemStack(JsonManager.INSTANCE.reader.readValue(content, DataKitsJson.class).getIcon()));
-                data.setItems(Serialization.INSTANCE.deserializeAndDecodeItemStackList(JsonManager.INSTANCE.reader.readValue(content, DataKitsJson.class).getItems()));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            dataKits.put(kitName, data);
-        });
     }
+
 
     public void saveKitsFromCache() {
         try(Connection connection = DatabaseManager.INSTANCE.getConnection()) {
             PreparedStatement insertStatement = connection.prepareStatement(DatakitsStatements.INSERT_KIT);
             PreparedStatement updateStatement = connection.prepareStatement(DatakitsStatements.UPDATE_KIT);
-            PreparedStatement selectContentStatement = connection.prepareStatement(DatakitsStatements.SELECT_CONTENT);
+            PreparedStatement selectContentCommandStatement = connection.prepareStatement(DatakitsStatements.SELECT_CONTENT_COMMAND);
             PreparedStatement deleteStatement = connection.prepareStatement(DatakitsStatements.DELETE_KIT);
 
             for (Map.Entry<String, DataKits> entry : dataKits.entrySet()) {
@@ -77,15 +79,17 @@ public class DataKitsManager {
 
                 String content = JsonManager.INSTANCE.createJsonKit(dataKitsJson);
 
-                if (kitExistsAndChangedInDatabase(kitName, content, selectContentStatement)) {
+                if (kitExistsAndChangedInDatabase(kitName, content, selectContentCommandStatement, datakit.getCommand())) {
                     updateStatement.setString(1, content);
-                    updateStatement.setString(2, kitName);
+                    updateStatement.setString(2, datakit.getCommand());
+                    updateStatement.setString(3, kitName);
                     updateStatement.executeUpdate();
 
-                } else if (!kitExistsInDatabase(kitName, selectContentStatement)) {
+                } else if (!kitExistsInDatabase(kitName, selectContentCommandStatement)) {
                     insertStatement.setString(1, UUID.randomUUID().toString());
                     insertStatement.setString(2, kitName);
                     insertStatement.setString(3, content);
+                    insertStatement.setString(4, datakit.getCommand());
                     insertStatement.executeUpdate();
                 }
             }
@@ -97,21 +101,22 @@ public class DataKitsManager {
         }
     }
 
-    private boolean kitExistsAndChangedInDatabase(String kitName, String newContent, PreparedStatement selectContentStatement) throws SQLException {
-        selectContentStatement.setString(1, kitName);
-        ResultSet resultSet = selectContentStatement.executeQuery();
+    private boolean kitExistsAndChangedInDatabase(String kitName, String newContent, PreparedStatement selectContentCommandStatement, String newCommand) throws SQLException {
+        selectContentCommandStatement.setString(1, kitName);
+        ResultSet resultSet = selectContentCommandStatement.executeQuery();
 
         if (resultSet.next()) {
             String existingContent = resultSet.getString("content");
-            return !existingContent.equals(newContent);
+            String existingCommand = resultSet.getString("command");
+            return !existingContent.equals(newContent) || !existingCommand.equals(newCommand);
         }
 
         return false;
     }
 
-    private boolean kitExistsInDatabase(String kitName, PreparedStatement selectContentStatement) throws SQLException {
-        selectContentStatement.setString(1, kitName);
-        ResultSet resultSet = selectContentStatement.executeQuery();
+    private boolean kitExistsInDatabase(String kitName, PreparedStatement selectContentCommandStatement) throws SQLException {
+        selectContentCommandStatement.setString(1, kitName);
+        ResultSet resultSet = selectContentCommandStatement.executeQuery();
         return resultSet.next();
     }
 

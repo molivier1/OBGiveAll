@@ -13,12 +13,14 @@ import mathano.mathano.managers.RewardsManager;
 import mathano.mathano.utils.ItemGui;
 import mathano.mathano.utils.Utils;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -115,6 +117,7 @@ public class Rewards {
     // Decrements by 1 the corresponding kit in the rewards config.
     public static void giveKit(Player player, String kitName) {
         List<ItemStack> items = DataKitsManager.dataKits.get(kitName).getItems();
+        String command = DataKitsManager.dataKits.get(kitName).getCommand();
 
         AtomicInteger check = new AtomicInteger();
 
@@ -130,6 +133,13 @@ public class Rewards {
         if(check.get() != 0) {
             // Message sent whenever item dropped caused by a full inventory
             player.sendMessage(Utils.getText(section, "itemsDropped"));
+        }
+
+        if (!Objects.equals(command, "no_command")) {
+            if (command.contains("%playerName%")) {
+                command = command.replaceAll("%playerName%", player.getName());
+            }
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
         }
     }
 }
