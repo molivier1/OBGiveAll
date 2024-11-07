@@ -12,5 +12,5 @@ public class DataKits {
     private String name;
     private ItemStack icon;
     private List<ItemStack> items;
-    private String command;
+    private List<String> commands;
 }

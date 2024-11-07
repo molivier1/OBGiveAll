@@ -117,7 +117,7 @@ public class Rewards {
     // Decrements by 1 the corresponding kit in the rewards config.
     public static void giveKit(Player player, String kitName) {
         List<ItemStack> items = DataKitsManager.dataKits.get(kitName).getItems();
-        String command = DataKitsManager.dataKits.get(kitName).getCommand();
+        List <String> commands = DataKitsManager.dataKits.get(kitName).getCommands();
 
         AtomicInteger check = new AtomicInteger();
 
@@ -135,11 +135,13 @@ public class Rewards {
             player.sendMessage(Utils.getText(section, "itemsDropped"));
         }
 
-        if (!Objects.equals(command, "no_command")) {
-            if (command.contains("%playerName%")) {
-                command = command.replaceAll("%playerName%", player.getName());
-            }
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        if (!Objects.equals(commands.getFirst(), "no_command")) {
+            commands.forEach(command -> {
+                if (command.contains("%playername%")) {
+                    command = command.replaceAll("%playername%", player.getName());
+                }
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            });
         }
     }
 }

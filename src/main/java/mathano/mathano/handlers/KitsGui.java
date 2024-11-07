@@ -19,6 +19,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.Inventory;
@@ -45,7 +46,7 @@ public class KitsGui implements Listener {
     private final Map<UUID, ChatCallback> chatCallbacks = new HashMap<>();
 
     // Map to store commands for each player
-    private final Map<UUID, String> playerCommands = new HashMap<>();
+    private final Map<UUID, List<String>> playerCommands = new HashMap<>();
 
     // Gui that shows every created kits
     public void mainGui(Player player) {
@@ -59,6 +60,7 @@ public class KitsGui implements Listener {
 
         // Creation of the buttons
         GuiItem createGuiItem = ItemBuilder.from(ItemGui.createItem).asGuiItem(inventoryClickEvent -> {
+            getPlayerCommands(player);
             kitCreationGUI(player);
         });
         GuiItem exitGuiItem = ItemBuilder.from(ItemGui.exitItem).asGuiItem(inventoryClickEvent -> {
@@ -88,6 +90,7 @@ public class KitsGui implements Listener {
 
         DataKitsManager.dataKits.forEach((kit_name, dataKit) -> {
             GuiItem iconGui = ItemBuilder.from(dataKit.getIcon()).asGuiItem(inventoryClickEvent -> {
+                getPlayerCommands(player);
                 kitEditGUI(player, inventoryClickEvent.getCurrentItem().getItemMeta().getDisplayName());
             });
             mainGui.addItem(iconGui);
@@ -128,7 +131,7 @@ public class KitsGui implements Listener {
                             }
 
                             // and send it through this function or maybe a static variable ?????
-                            return verifKitName(stateSnapshot.getText(), null, inventoryClickEvent.getClickedInventory(), player, false, getPlayerCommand(player));
+                            return verifKitName(stateSnapshot.getText(), null, inventoryClickEvent.getClickedInventory(), player, false, getPlayerCommands(player));
                         })
                         // Sets the text the GUI should start with
                         .text("Nom du kit")
@@ -149,9 +152,42 @@ public class KitsGui implements Listener {
 
 
         // Placing of the buttons
-        for (int i = 1; i < 10; i++) {
-            kitCreationGui.setItem(5, i, glassPaneItemGui);
-        }
+        kitCreationGui.setItem(5, 1, glassPaneItemGui);
+        kitCreationGui.setItem(5, 2, glassPaneItemGui);
+        kitCreationGui.setItem(5, 3, glassPaneItemGui);
+        kitCreationGui.setItem(5, 4, glassPaneItemGui);
+        kitCreationGui.setItem(5, 5, glassPaneItemGui);
+        kitCreationGui.setItem(5, 6, glassPaneItemGui);
+
+        ItemStack displayCommandsItemStack = new ItemStack(Material.PAPER);
+        ItemMeta displayCommandsItemMeta  = displayCommandsItemStack.getItemMeta();
+        displayCommandsItemMeta.setDisplayName("Lister les commandes");
+        displayCommandsItemStack.setItemMeta(displayCommandsItemMeta);
+
+        GuiItem displayCommandsItemGui = ItemBuilder.from(displayCommandsItemStack).asGuiItem(inventoryClickEvent -> {
+            inventoryClickEvent.setCancelled(true);
+
+            listCommands(player);
+        });
+
+        kitCreationGui.setItem(5, 7, displayCommandsItemGui);
+
+        ItemStack resetCommandsItemStack = new ItemStack(Material.PAPER);
+        ItemMeta resetCommandsItemMeta  = resetCommandsItemStack.getItemMeta();
+        resetCommandsItemMeta.setDisplayName("Supprimer les commandes");
+        resetCommandsItemStack.setItemMeta(resetCommandsItemMeta);
+
+        GuiItem resetCommandsItemGui = ItemBuilder.from(resetCommandsItemStack).asGuiItem(inventoryClickEvent -> {
+            inventoryClickEvent.setCancelled(true);
+
+            resetCommands(player);
+        });
+
+        kitCreationGui.setItem(5, 8, resetCommandsItemGui);
+
+        kitCreationGui.setItem(5, 9, glassPaneItemGui);
+
+
         kitCreationGui.setItem(6, 1, goBackGuiItem);
         kitCreationGui.setItem(6, 2, glassPaneItemGui);
 
@@ -171,13 +207,22 @@ public class KitsGui implements Listener {
             inventoryClickEvent.setCancelled(true);
             listen = true;
             kitCreationGui.close(player);
-            player.sendMessage("Veuillez entrer une commande : (pseudo du joueur -> %playerName%) (/cancel pour annuler)");
+            player.sendMessage("Veuillez entrer une commande : (pseudo du joueur -> %playername%) (/cancel pour annuler)");
             waitForCommand(player, command -> {
                 if(!command.equals("/cancel")) {
                     player.sendMessage("Vous avez entré la commande : " + command);
 
-                    // retrieve the command and associate it to the player
-                    setPlayerCommand(player, command);
+                    // retrieve the commands and associate them to the player
+                    List <String> commands = getPlayerCommands(player);
+
+                    if(commands.contains("no_command")) {
+                        commands.remove("no_command");
+                        commands.addFirst(command);
+                    } else {
+                        commands.add(command);
+                    }
+
+                    setPlayerCommands(player, commands);
                 }
 
                 kitCreationGui.open(player);
@@ -223,7 +268,7 @@ public class KitsGui implements Listener {
                                 return Collections.emptyList();
                             }
 
-                            return verifKitName(stateSnapshot.getText(), name, inventoryClickEvent.getClickedInventory(), player, true, getPlayerCommand(player));
+                            return verifKitName(stateSnapshot.getText(), name, inventoryClickEvent.getClickedInventory(), player, true, getPlayerCommands(player));
                         })
                         // Sets the text the GUI should start with
                         .text(name)
@@ -268,9 +313,41 @@ public class KitsGui implements Listener {
         });
 
         // Placing of the buttons
-        for (int i = 1; i < 10; i++) {
-            kitEditGui.setItem(5, i, glassPaneItemGui);
-        }
+        kitEditGui.setItem(5, 1, glassPaneItemGui);
+        kitEditGui.setItem(5, 2, glassPaneItemGui);
+        kitEditGui.setItem(5, 3, glassPaneItemGui);
+        kitEditGui.setItem(5, 4, glassPaneItemGui);
+        kitEditGui.setItem(5, 5, glassPaneItemGui);
+        kitEditGui.setItem(5, 6, glassPaneItemGui);
+
+        ItemStack displayCommandsItemStack = new ItemStack(Material.PAPER);
+        ItemMeta displayCommandsItemMeta  = displayCommandsItemStack.getItemMeta();
+        displayCommandsItemMeta.setDisplayName("Lister les commandes");
+        displayCommandsItemStack.setItemMeta(displayCommandsItemMeta);
+
+        GuiItem displayCommandsItemGui = ItemBuilder.from(displayCommandsItemStack).asGuiItem(inventoryClickEvent -> {
+            inventoryClickEvent.setCancelled(true);
+
+            listCommands(player);
+        });
+
+        kitEditGui.setItem(5, 7, displayCommandsItemGui);
+
+        ItemStack resetCommandsItemStack = new ItemStack(Material.PAPER);
+        ItemMeta resetCommandsItemMeta  = resetCommandsItemStack.getItemMeta();
+        resetCommandsItemMeta.setDisplayName("Supprimer les commandes");
+        resetCommandsItemStack.setItemMeta(resetCommandsItemMeta);
+
+        GuiItem resetCommandsItemGui = ItemBuilder.from(resetCommandsItemStack).asGuiItem(inventoryClickEvent -> {
+            inventoryClickEvent.setCancelled(true);
+
+            resetCommands(player);
+        });
+
+        kitEditGui.setItem(5, 8, resetCommandsItemGui);
+
+        kitEditGui.setItem(5, 9, glassPaneItemGui);
+
         kitEditGui.setItem(6, 1, goBackGuiItem);
         kitEditGui.setItem(6, 2, glassPaneItemGui);
 
@@ -287,13 +364,22 @@ public class KitsGui implements Listener {
             inventoryClickEvent.setCancelled(true);
             listen = true;
             kitEditGui.close(player);
-            player.sendMessage("Veuillez entrer une commande : (pseudo du joueur -> %playerName%) (/cancel pour annuler)");
+            player.sendMessage("Veuillez entrer une commande : (pseudo du joueur -> %playername%) (/cancel pour annuler)");
             waitForCommand(player, command -> {
                 if(!command.equals("/cancel")) {
                     player.sendMessage("Vous avez entré la commande : " + command);
 
-                    // retrieve the command and associate it to the player
-                    setPlayerCommand(player, command);
+                    // retrieve the commands and associate them to the player
+                    List <String> commands = getPlayerCommands(player);
+
+                    if(commands.contains("no_command")) {
+                        commands.remove("no_command");
+                        commands.addFirst(command);
+                    } else {
+                        commands.add(command);
+                    }
+
+                    setPlayerCommands(player, commands);
                 }
 
                 kitEditGui.open(player);
@@ -308,7 +394,7 @@ public class KitsGui implements Listener {
         DataKits dataKit = DataKitsManager.dataKits.get(name);
 
         kitEditGui.addItem(dataKit.getItems());
-        setPlayerCommand(player, dataKit.getCommand());
+        setPlayerCommands(player, dataKit.getCommands());
 
         kitEditGui.setItem(47, ItemBuilder.from(dataKit.getIcon()).asGuiItem());
 
@@ -337,7 +423,7 @@ public class KitsGui implements Listener {
         }
     }
 
-    public List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, String command) {
+    public List<AnvilGUI.ResponseAction> verifKitName(String newKitName, String oldKitName, Inventory clickedInventory, Player player, Boolean edit, List <String> commands) {
         if (!newKitName.equalsIgnoreCase("")
                 && !newKitName.contains(" ")) {
             if (!edit) {
@@ -348,18 +434,18 @@ public class KitsGui implements Listener {
                     player.sendMessage(Utils.getText(section, "alreadyExists", Placeholders.KIT_NAME.set(newKitName)));
                     return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("Nom du kit"));
                 } else {
-                    saveKit(clickedInventory, player, newKitName, null, command);
+                    saveKit(clickedInventory, player, newKitName, null, commands);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
             } else {
                 if (DataKitsManager.dataKits.containsKey(newKitName) && newKitName.equals(oldKitName)) {
-                    saveKit(clickedInventory, player, newKitName, oldKitName, command);
+                    saveKit(clickedInventory, player, newKitName, oldKitName, commands);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 }
 
                 // !DataKitsManager.DATA_KITS_CONFIG.contains(newKitName)
                 if (!DataKitsManager.dataKits.containsKey(newKitName)) {
-                    saveKit(clickedInventory, player, newKitName, oldKitName, command);
+                    saveKit(clickedInventory, player, newKitName, oldKitName, commands);
                     return Arrays.asList(AnvilGUI.ResponseAction.close());
                 } else {
                     player.sendMessage(ChatColor.RED + "Le kit " + newKitName + " existe déjà !");
@@ -376,7 +462,7 @@ public class KitsGui implements Listener {
     }
 
     // Save the kit in the cache, handles renaming
-    private void saveKit(Inventory kit, Player player, String name, String oldName, String command) {
+    private void saveKit(Inventory kit, Player player, String name, String oldName, List <String> commands) {
         boolean edit = false;
 
         ItemStack icon = kit.getItem(47);
@@ -407,17 +493,16 @@ public class KitsGui implements Listener {
             edit = true;
         }
 
-        if (command == null) {
-            command = "no_command";
-        }
-
         DataKits dataKit = new DataKits();
 
         dataKit.setName(name);
         dataKit.setIcon(icon);
         dataKit.setItems(getKitContent(kit));
-        command = command.replaceFirst("/", "");
-        dataKit.setCommand(command);
+
+        // Remove the "/" before every command in order to execute command in console
+        commands.replaceAll(command -> command.replaceFirst("/", ""));
+
+        dataKit.setCommands(commands);
         DataKitsManager.dataKits.put(name, dataKit);
 
         if (edit) {
@@ -448,7 +533,7 @@ public class KitsGui implements Listener {
         void onChat(String message);
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGH)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
         if(listen) {
             listen = false;
@@ -463,16 +548,18 @@ public class KitsGui implements Listener {
     }
 
     // Getter and Setter for the commands. Should work with multiple admins working at the same time.
-    public void setPlayerCommand(Player player, String command) {
-        playerCommands.put(player.getUniqueId(), command);
+    public void setPlayerCommands(Player player, List <String> commands) {
+        playerCommands.put(player.getUniqueId(), commands);
     }
 
-    public String getPlayerCommand(Player player) {
-        String command = null;
-        if (playerCommands.containsKey(player.getUniqueId()) && !Objects.equals(playerCommands.get(player.getUniqueId()), "no_command")) {
-            command = playerCommands.remove(player.getUniqueId());
+    public List <String> getPlayerCommands(Player player) {
+        List <String> commands = new ArrayList<String>();
+        if (playerCommands.containsKey(player.getUniqueId())) {
+            commands = playerCommands.remove(player.getUniqueId());
+        } else {
+            commands.add("no_command");
         }
-        return command;
+        return commands;
     }
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -485,5 +572,20 @@ public class KitsGui implements Listener {
                 player.sendMessage(ChatColor.RED + "Vous avez dépassé le temps imparti pour entrer la commande.");
             }
         }, 120, TimeUnit.SECONDS);
+    }
+
+    private void listCommands(Player player) {
+        List <String> commands = getPlayerCommands(player);
+        setPlayerCommands(player, commands);
+
+        commands.forEach(player::sendMessage);
+    }
+
+    private void resetCommands(Player player) {
+        getPlayerCommands(player);
+
+        setPlayerCommands(player, getPlayerCommands(player));
+
+        player.sendMessage("Toutes les commandes ont été supprimés !");
     }
 }

@@ -1,6 +1,9 @@
 package mathano.mathano.managers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import mathano.mathano.database.DataKits;
+import mathano.mathano.database.jsondata.CommandsJson;
 import mathano.mathano.database.jsondata.DataKitsJson;
 import mathano.mathano.database.serialization.Serialization;
 import mathano.mathano.database.statements.DatakitsStatements;
@@ -23,6 +26,24 @@ public class DataKitsManager {
         INSTANCE = this;
     }
 
+    public CommandsJson getCommands(String stringCommandsJson) {
+        try {
+            JsonNode jsonNode = JsonManager.INSTANCE.mapper.readTree(stringCommandsJson);
+
+            if(jsonNode.isArray()) {
+                CommandsJson commandsJson = new CommandsJson();
+                commandsJson.setCommands(JsonManager.INSTANCE.mapper.convertValue(jsonNode, List.class));
+
+                return commandsJson;
+            }
+
+            return JsonManager.INSTANCE.mapper.readValue(stringCommandsJson, CommandsJson.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public void loadKitsIntoCache() {
         try(Connection connection = DatabaseManager.INSTANCE.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(DatakitsStatements.LOAD_KIT_CACHE);
@@ -31,13 +52,13 @@ public class DataKitsManager {
             while (resultSet.next()) {
                 String kitName = resultSet.getString("kit_name");
                 String content = resultSet.getString("content");
-                String command = resultSet.getString("command");
+                String command = resultSet.getString("commands");
 
                 kitJSONCache.put(kitName, content);
 
                 DataKits data = new DataKits();
                 data.setName(kitName);
-                data.setCommand(command);
+                data.setCommands(getCommands(command).getCommands());
 
                 try {
                     data.setIcon(Serialization.INSTANCE.deserializeAndDecodeItemStack(JsonManager.INSTANCE.reader.readValue(content, DataKitsJson.class).getIcon()));
@@ -59,7 +80,7 @@ public class DataKitsManager {
         try(Connection connection = DatabaseManager.INSTANCE.getConnection()) {
             PreparedStatement insertStatement = connection.prepareStatement(DatakitsStatements.INSERT_KIT);
             PreparedStatement updateStatement = connection.prepareStatement(DatakitsStatements.UPDATE_KIT);
-            PreparedStatement selectContentCommandStatement = connection.prepareStatement(DatakitsStatements.SELECT_CONTENT_COMMAND);
+            PreparedStatement selectContentCommandsStatement = connection.prepareStatement(DatakitsStatements.SELECT_CONTENT_COMMANDS);
             PreparedStatement deleteStatement = connection.prepareStatement(DatakitsStatements.DELETE_KIT);
 
             for (Map.Entry<String, DataKits> entry : dataKits.entrySet()) {
@@ -79,17 +100,25 @@ public class DataKitsManager {
 
                 String content = JsonManager.INSTANCE.createJsonKit(dataKitsJson);
 
-                if (kitExistsAndChangedInDatabase(kitName, content, selectContentCommandStatement, datakit.getCommand())) {
+                String commands;
+
+                try {
+                    commands = JsonManager.INSTANCE.writer.writeValueAsString(datakit.getCommands());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (kitExistsAndChangedInDatabase(kitName, content, selectContentCommandsStatement, commands)) {
                     updateStatement.setString(1, content);
-                    updateStatement.setString(2, datakit.getCommand());
+                    updateStatement.setString(2, commands);
                     updateStatement.setString(3, kitName);
                     updateStatement.executeUpdate();
 
-                } else if (!kitExistsInDatabase(kitName, selectContentCommandStatement)) {
+                } else if (!kitExistsInDatabase(kitName, selectContentCommandsStatement)) {
                     insertStatement.setString(1, UUID.randomUUID().toString());
                     insertStatement.setString(2, kitName);
                     insertStatement.setString(3, content);
-                    insertStatement.setString(4, datakit.getCommand());
+                    insertStatement.setString(4, commands);
                     insertStatement.executeUpdate();
                 }
             }
@@ -101,22 +130,22 @@ public class DataKitsManager {
         }
     }
 
-    private boolean kitExistsAndChangedInDatabase(String kitName, String newContent, PreparedStatement selectContentCommandStatement, String newCommand) throws SQLException {
-        selectContentCommandStatement.setString(1, kitName);
-        ResultSet resultSet = selectContentCommandStatement.executeQuery();
+    private boolean kitExistsAndChangedInDatabase(String kitName, String newContent, PreparedStatement selectContentCommandsStatement, String newCommand) throws SQLException {
+        selectContentCommandsStatement.setString(1, kitName);
+        ResultSet resultSet = selectContentCommandsStatement.executeQuery();
 
         if (resultSet.next()) {
             String existingContent = resultSet.getString("content");
-            String existingCommand = resultSet.getString("command");
+            String existingCommand = resultSet.getString("commands");
             return !existingContent.equals(newContent) || !existingCommand.equals(newCommand);
         }
 
         return false;
     }
 
-    private boolean kitExistsInDatabase(String kitName, PreparedStatement selectContentCommandStatement) throws SQLException {
-        selectContentCommandStatement.setString(1, kitName);
-        ResultSet resultSet = selectContentCommandStatement.executeQuery();
+    private boolean kitExistsInDatabase(String kitName, PreparedStatement selectContentCommandsStatement) throws SQLException {
+        selectContentCommandsStatement.setString(1, kitName);
+        ResultSet resultSet = selectContentCommandsStatement.executeQuery();
         return resultSet.next();
     }
 
